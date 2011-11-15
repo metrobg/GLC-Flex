@@ -1,0 +1,288 @@
+<?xml version="1.0" encoding="utf-8"?>
+<MDIWindow xmlns="org.openzet.containers.*" xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:zet="http://www.openzet.org/2009/mxml"
+           xmlns:mbg="http://www.openzet.org/2009/mxml" titleIcon="{Images.reportIcon}" xmlns:local="*"
+           xmlns:ns1="com.metrobg.Components.*" creationComplete="init()" width="369"
+           height="552" title="Report Runner" xmlns:ns2="com.ace.Input.*">
+    <mx:Script>
+        <![CDATA[
+            //import ascb.util.DateFormat;
+            // ActionScript file
+            import com.metrobg.Icons.Images;
+            import mx.collections.ArrayCollection;
+            import com.metrobg.Classes.ReportItem;
+            import mx.formatters.DateFormatter;
+
+            public var defaultReportDates:String;
+
+            private var today:Date = new Date();
+
+            private var PDFBase:String = "http://dbase.metrobg.com/GLC/";
+
+            private var reportArray:Array;
+
+            // public var ros:ReportOptionSelector;
+            [Bindable]
+            public var reportAC:ArrayCollection;
+
+            public var vclientType:String;
+
+            public var vbalanceType:String;
+
+            public var agentCode:Number;
+
+            public var pageBreaks:String;
+
+            public var reportType:String;
+
+            private var df:DateFormatter;
+
+            private var variables:URLVariables;
+
+            public function init():void
+            {
+                reportAC = new ArrayCollection;
+                df = new DateFormatter();
+                df.formatString = "DD-MMM-YYYY";
+                fromDate_df.text = ""
+                toDate_df.text = ""
+                defaultReportDates = fromDate_df.text;
+                //reportArray = new Array;
+                this.reportAC = parentDocument.reportAC;
+                reportAC.refresh();
+                report_cb.labelField = "label";
+                report_cb.dataField = "value";
+                report_cb.dataProvider = reportAC
+                variables = new URLVariables();
+                //this.status = "three";
+                init1();
+            }
+
+            private function init1():void
+            {
+                vclientType = "A";
+                vbalanceType = "N";
+                pageBreaks = "N";
+                reportType = "A";
+            }
+
+            private function runReport(val:Number):void
+            {
+                var fdate:Date = new Date(fromDate_df.text);
+                var tdate:Date = new Date(toDate_df.text);
+                //var variables:URLVariables = new URLVariables();
+                var state:String = '';
+                variables.from = df.format(fdate).toUpperCase();
+                variables.to = df.format(tdate).toUpperCase();
+                PDFBase = report_cb.selectedItem.url;
+                var request:URLRequest = new URLRequest(PDFBase);
+                request.method = "POST";
+                request.data = variables;
+                navigateToURL(request);
+            }
+
+            private function resetStates():void
+            {
+            }
+
+            private function addState():void
+            {
+            }
+
+            private function setOption1Defaults():void
+            {
+                BalanceType.selectedValue = "N";
+                ClientType.selectedValue = "A";
+                chFL_Only.selected = true;
+                variables.clients = "A";
+                variables.state = "FL";
+                variables.zeros = "Y";
+            }
+
+            private function setOption2Defaults():void
+            {
+                return;
+            }
+
+            private function reportSelected(event:Event):void
+            {
+                reportname_lbl.text = report_cb.selectedLabel;
+                ShowHideReportDateFields(report_cb.selectedItem.datefields);
+                vros.visible = report_cb.selectedItem.options;
+                //parentDocument.ta1.text += "sort visible :" + report_cb.selectedItem.options3 + "\n";
+                options2.visible = report_cb.selectedItem.options2;
+                if (options2.visible)
+                {
+                    setOption2Defaults();
+                }
+                options1.visible = report_cb.selectedItem.options1;
+                if (options1.visible)
+                {
+                    setOption1Defaults();
+                }
+                options3.visible = report_cb.selectedItem.options3;
+                /* so manager 2 can't access reports with dollar totals */
+                if (Number(parentDocument.txtROLE) == 5)
+                {
+//		ros.DisplayAmounts.enabled = false;
+                }
+//	ros.agentSel.setAgent = 0; // set the agent selector to all agents (code 0)
+                if (report_cb.selectedItem.xoptions)
+                {
+                    reset_btn.visible = true;
+                }
+                else
+                {
+                    reset_btn.visible = false;
+                }
+                // added 09/22/2008
+                if (report_cb.selectedItem.value == 3)
+                { // delinquent client report requires no date
+                    fromDate_df.text = defaultReportDates;
+                    toDate_df.text = defaultReportDates;
+                }
+            }
+
+            private function ShowHideReportDateFields(status:String):void
+            {
+                if (status == "H")
+                {
+                    fromDate_df.visible = false;
+                    toDate_df.visible = false;
+                    label13.visible = false;
+                    label14.visible = false
+                }
+                if (status == "S")
+                {
+                    fromDate_df.visible = true;
+                    toDate_df.visible = true;
+                    label13.visible = true;
+                    label14.visible = true
+                }
+            }
+
+            private function setClient(event:Event):void
+            {
+                variables.clients = ClientType.selectedValue.toString();
+            }
+
+            private function setBalanceType(event:Event):void
+            {
+                variables.zeros = BalanceType.selectedValue.toString();
+            }
+
+            private function setState(event:Event):void
+            {
+                if (chFL_Only.selected)
+                {
+                    variables.state = "FL";
+                }
+                else
+                {
+                    variables.state = "ALL";
+                }
+            }
+
+            public function agentSelected(e:Event):void
+            {
+                agentCode = agentSel.selectedItem.data;
+            }
+        ]]>
+    </mx:Script>
+    <mx:Canvas height="100%" width="100%">
+        <mx:Label x="80" y="61" text="From"
+                  fontWeight="bold" styleName="textdata" id="label13" />
+        <mx:Label x="80" y="92" text="To"
+                  fontWeight="bold" styleName="textdata" id="label14" />
+        <ns2:ValidatedComboBox x="75" y="29" width="190"
+                               change="reportSelected(event)" id="report_cb" enabled="true"
+                               labelField="LABEL" dataField="DATA" />
+        <!-- <local:ReportOptionSelector  id="ros" y="121" x="74" width="191" visible="true" height="130"/>-->
+        <mx:Button x="129" y="472" label="Run"
+                   id="run_btn" icon="{Images.formIcon}" click="runReport(Number(report_cb.selectedItem.value))"
+                   enabled="true" />
+        <mx:Label x="10" y="6" text="current report"
+                  width="147" textAlign="center" fontWeight="bold"
+                  visible="true" id="reportname_lbl" />
+        <mx:Text x="48" y="444" id="t1"
+                 width="160" enabled="false" />
+        <mx:ComboBox x="62" y="271" id="stateSelector_cb"
+                     visible="false" close="addState();" toolTip="Select up to five States to appear on the report" />
+        <mx:Image x="27" y="472" id="reset_btn"
+                  source="{Images.removeIcon}" toolTip="Click to clear selections" visible="true"
+                  buttonMode="true" useHandCursor="true" width="16"
+                  height="16" />
+        <mx:TextArea x="-3" y="307" id="ta1" visible="false" />
+        <ns2:ValidatedDateField x="129" y="59" id="fromDate_df" width="103" />
+        <ns2:ValidatedDateField x="129" y="90" width="103" id="toDate_df" />
+        <mx:VBox width="100%" height="300" y="136">
+            <mx:Canvas id="vros" width="100%" height="298"
+                       y="142" visible="false">
+                <mx:Canvas id="options1" width="184" height="118" visible="true">
+                    <mx:Label x="6" y="6" text="Select Clients"
+                              width="110" textAlign="center" styleName="textdata"
+                              fontWeight="bold" />
+                    <mx:RadioButtonGroup id="ClientType" change="setClient(event)" />
+                    <mx:RadioButton x="16" y="25" label="Active"
+                                    groupName="ClientType" value="A" styleName="textdata"
+                                    fontWeight="bold" />
+                    <mx:RadioButton x="16" y="44" label="Inactive"
+                                    groupName="ClientType" value="I" styleName="textdata"
+                                    fontWeight="bold" />
+                    <mx:RadioButton x="16" y="63" label="All"
+                                    groupName="ClientType" value="B" styleName="textdata"
+                                    fontWeight="bold" />
+                    <mx:Label x="114" y="6" text="Include"
+                              enabled="true" width="69" textAlign="left"
+                              styleName="textdata" fontWeight="bold" />
+                    <mx:Label x="108" y="20" text="0 Balance ?"
+                              enabled="true" width="69" textAlign="left"
+                              styleName="textdata" fontWeight="bold" />
+                    <mx:RadioButtonGroup id="BalanceType" change="setBalanceType(event)" />
+                    <mx:RadioButton x="117" y="44" label="Yes"
+                                    groupName="BalanceType" value="Y" styleName="textdata"
+                                    fontWeight="bold" />
+                    <mx:RadioButton x="117" y="63" label="No"
+                                    groupName="BalanceType" value="N" styleName="textdata"
+                                    fontWeight="bold" />
+                    <mx:CheckBox x="16" y="96" label="Florida Only ?"
+                                 styleName="textdata" selected="true" id="chFL_Only"
+                                 fontWeight="bold" click="setState(event)" />
+                </mx:Canvas>
+                <mx:Canvas id="options2" width="257" height="136"
+                           visible="true" y="136" x="53">
+                    <local:AgentSelector x="18" y="7" id="agentSel" close="agentSelected(event)" />
+                    <mx:RadioButtonGroup id="PageBreaksGrp" />
+                    <mx:RadioButton x="26" y="61" label="Yes"
+                                    groupName="PageBreaksGrp" selected="false" value="Y"
+                                    fontWeight="bold" id="pageBreaksY" styleName="textdata" />
+                    <mx:RadioButton x="105" y="61" label="No"
+                                    groupName="PageBreaksGrp" selected="true" value="N"
+                                    fontWeight="bold" id="pageBreaksN" styleName="textdata" />
+                    <mx:Label x="20" y="37" text="New Page for each Group ?"
+                              styleName="textdata" fontWeight="bold" />
+                    <mx:RadioButtonGroup id="DisplayAmounts" />
+                    <mx:RadioButton x="26" y="109" label="Yes"
+                                    groupName="DisplayAmounts" selected="false" value="Y"
+                                    fontWeight="bold" id="amountDisplayY" styleName="textdata" />
+                    <mx:RadioButton x="105" y="109" label="No"
+                                    groupName="DisplayAmounts" selected="true" value="N"
+                                    fontWeight="bold" id="amountDisplayN" styleName="textdata" />
+                    <mx:Label x="26" y="85" text="Show Dollar Figures ?"
+                              styleName="textdata" fontWeight="bold" />
+                </mx:Canvas>
+                <mx:Canvas id="options3" width="147" height="97"
+                           visible="true" x="192" y="10">
+                    <mx:RadioButtonGroup id="orderBy" />
+                    <mx:RadioButton x="35" y="50" label="Agent"
+                                    groupName="orderBy" selected="true" value="A"
+                                    fontWeight="bold" id="byAgent" styleName="textdata" />
+                    <mx:RadioButton x="35" y="29" label="Source"
+                                    groupName="orderBy" selected="false" value="S"
+                                    fontWeight="bold" id="bySource" styleName="textdata" />
+                    <mx:Label x="49.5" y="10" text="Sort By"
+                              styleName="textdata" fontWeight="bold" />
+                </mx:Canvas>
+            </mx:Canvas>
+        </mx:VBox>
+    </mx:Canvas>
+</MDIWindow>

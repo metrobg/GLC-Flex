@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<mx:ComboBox xmlns:mx="http://www.adobe.com/2006/mxml" 
+	change="roleData = this.selectedItem.data;roleLabel=this.selectedLabel">
+<mx:Script>
+	<![CDATA[
+		 
+		[Bindable]
+		public var roleData:Number;
+		[Bindable]
+		public var roleLabel:String;
+		
+		public function set setRole(value:Number):void 	{
+				if(value > 0)	{
+					for(var i:Number = 0; i < roleList.length; i++)	{
+						if( roleList[i]["data"] == value)	{
+							this.selectedIndex = i;
+							roleData = roleList[i]["data"]
+							roleLabel = roleList[i]["label"];
+						}
+					}
+					this.focusManager.hideFocus();
+				} else {
+					this.selectedIndex = 0;
+				}
+				
+			}	
+	]]>
+</mx:Script>
+<mx:dataProvider>
+			<mx:ArrayCollection id="roleList">	<!--value="{resultGrid.selectedItem.security}" -->
+				<mx:Object data="0" label="Select Role"/> 	
+				<mx:Object data="9" label="Administrator"/>	
+				<mx:Object data="7" label="Manager 1"/>	
+				<mx:Object data="5" label="Manager 2"/>	
+				<mx:Object data="3" label="Staff"/>	
+				<mx:Object data="1" label="User"/>
+			</mx:ArrayCollection>
+		</mx:dataProvider>
+</mx:ComboBox>
+
+

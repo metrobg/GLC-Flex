@@ -1,0 +1,83 @@
+<!--<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="192" height="150" 
+	  creationComplete="init()" xmlns:local="*"> -->
+	  <mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="192" height="200" 
+	  creationComplete="init()" xmlns:local="*">
+
+<mx:Script>
+	<![CDATA[
+		public var vclientType:String;
+		public var vbalanceType:String;
+	    public var agentCode:Number;
+	    public var pageBreaks:String;
+	    public var reportType:String;
+	   
+	    
+	   private function init():void {
+	   	this.BalanceType.selectedValue = "N";
+	   	this.ClientType.selectedValue = "A";
+	   	vclientType = "A";
+	   	vbalanceType = "N";
+	   	pageBreaks = "N";
+	   	reportType = "A";
+	   	
+	   }	
+		private function setClient(event:Event):void {
+			this.vclientType = this.ClientType.selectedValue.toString();
+					parentDocument.search_fld.text = this.vclientType;
+		}
+	private function setBalanceType(event:Event):void {
+
+		this.vbalanceType = this.BalanceType.selectedValue.toString();
+				parentDocument.search_fld.text = this.vbalanceType;
+	}
+	
+	public function agentSelected(e:Event):void {
+			agentCode = agentSel.selectedItem.data;
+			
+		}
+		
+ /*  private function setPageBreaks():void {
+			this.PageBreaks = this.PageBreaksGrp.selectedValue;
+			
+		} */
+	]]>
+</mx:Script>
+<mx:Canvas id="options1" width="100%" height="100%" visible="true">
+	<mx:Label x="6" y="6" text="Select Clients" width="110" textAlign="center" styleName="textdata" fontWeight="bold"/>
+	<mx:RadioButtonGroup id="ClientType" change="setClient(event)"/>
+	<mx:RadioButton x="16" y="25" label="Active" groupName="ClientType" value="A" styleName="textdata" fontWeight="bold"/>
+	<mx:RadioButton x="16" y="44" label="Inactive" groupName="ClientType" value="I" styleName="textdata" fontWeight="bold"/>
+	<mx:RadioButton x="16" y="63" label="All" groupName="ClientType" value="B" styleName="textdata" fontWeight="bold"/>
+	<mx:Label x="114" y="6" text="Include" enabled="true" width="69" textAlign="left" styleName="textdata" fontWeight="bold"/>
+	<mx:Label x="108" y="20" text="0 Balance ?" enabled="true" width="69" textAlign="left" styleName="textdata" fontWeight="bold"/>
+	<mx:RadioButtonGroup id="BalanceType" change="setBalanceType(event)"/>
+	<mx:RadioButton x="117" y="44" label="Yes" groupName="BalanceType" value="Y" styleName="textdata" fontWeight="bold"/>
+	<mx:RadioButton x="117" y="63" label="No" groupName="BalanceType" value="N" styleName="textdata" fontWeight="bold"/>
+	<mx:CheckBox x="16" y="96" label="Florida Only ?" styleName="textdata" selected="true" id="flOnly_ch" fontWeight="bold"/>
+</mx:Canvas>
+<mx:Canvas id="options2" width="100%" height="100%" visible="false">
+     <local:AgentSelector x="18" y="22" id="agentSel" close="agentSelected(event)"/>
+     <mx:RadioButtonGroup id="PageBreaksGrp"/>
+     <mx:RadioButton x="26" y="81" label="Yes" groupName="PageBreaksGrp" selected="false" value="Y" 
+     	 fontWeight="bold" id="pageBreaksY" styleName="textdata"/>
+     <mx:RadioButton x="105" y="81" label="No" groupName="PageBreaksGrp" selected="true" value="N" 
+     	 fontWeight="bold" id="pageBreaksN" styleName="textdata"/>
+     <mx:Label x="20" y="57" text="New Page for each Group ?" styleName="textdata"  fontWeight="bold"/>
+     
+     <mx:RadioButtonGroup id="DisplayAmounts"/>
+     <mx:RadioButton x="26" y="129" label="Yes" groupName="DisplayAmounts" selected="false" value="Y" 
+     	 fontWeight="bold" id="amountDisplayY" styleName="textdata"/>
+     <mx:RadioButton x="105" y="129" label="No" groupName="DisplayAmounts" selected="true" value="N" 
+     	 fontWeight="bold" id="amountDisplayN" styleName="textdata"/>
+     <mx:Label x="26" y="105" text="Show Dollar Figures ?" styleName="textdata"  fontWeight="bold"/>
+ </mx:Canvas>
+<mx:Canvas id="options3" width="100%" height="100%" visible="false">    
+     <mx:RadioButtonGroup id="orderBy"/>
+     <mx:RadioButton x="26" y="169" label="Agent" groupName="orderBy" selected="true" value="A" 
+     	 fontWeight="bold" id="byAgent" styleName="textdata"/>
+     <mx:RadioButton x="105" y="169" label="Source" groupName="orderBy" selected="false" value="S" 
+     	 fontWeight="bold" id="bySource" styleName="textdata"/>
+     <mx:Label x="63.5" y="149" text="Sort By" styleName="textdata"  fontWeight="bold"/>
+     
+</mx:Canvas>	
+</mx:Canvas>

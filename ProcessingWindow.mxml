@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8"?>
+<MDIWindow xmlns="org.openzet.containers.*"
+		   xmlns:mx="http://www.adobe.com/2006/mxml"
+		   xmlns:zet="http://www.openzet.org/2009/mxml"
+		   xmlns:ns2="com.ace.Input.*"
+		   xmlns:local="*"
+		   creationComplete="init()"
+		   width="353"
+		   height="431"
+		   title="Payment Processing 2.2" xmlns:ns1="com.metrobg.Components.*">
+	<mx:Script>
+	<![CDATA[
+		import com.goodlife.BILLING;
+		import mx.utils.Base64Encoder;
+		import mx.collections.ArrayCollection;
+
+import com.metrobg.Classes.*;
+import mx.controls.Alert;
+import com.metrobg.Icons.Images
+import mx.managers.PopUpManager;
+import ascb.util.DateUtilities;
+import mx.events.CloseEvent;
+import ascb.util.DateFormat;		
+public var amount:Number;
+public var message:String;
+public var subType:String;
+
+
+
+
+
+public function doInit():void {
+	 
+	return; 
+	 
+	 
+	 
+}	
+	private function getResultOk(r:Number,event:Event):void {
+	switch (r) {
+		
+		case 1:
+		var kount:Number = Number(cardCheck.lastResult.root.recordcount);
+		  if(cardCheck.lastResult.root.status == 1) {
+		    if( kount < 1) {    
+		   	  	// pt.send();
+		   	  	Alert.show('Process Card',"Stop",0,this,null,Images.stopIcon,0);
+		    } else {
+		    	
+		     	Alert.show('Card on file ' + kount + ' times\n   Continue ?', "Alert", 3, 
+		    	            this, alertClickHandler,Images.warningIcon2);
+		    }
+		     } else {
+		      Alert.show('Problem checking card status',"Stop",0,this,null,Images.stopIcon,0);
+		  }
+		
+		
+		break;
+		case 5:
+		   Alert.show("  Result: " + pt.lastResult.transaction.result + "\n" +
+		              "Response: " + pt.lastResult.transaction.response + "\n" +
+		              "  Status: " + pt.lastResult.transaction.status + "\n" +
+		              "   Batch: " + pt.lastResult.transaction.batch,"Results");
+		              break;
+	}
+	
+}
+
+ private function problem(event:Event):void {
+ 	Alert.show(event.toString(),"Error");
+ }		
+
+private function alertClickHandler(event:CloseEvent):void {
+	             if (event.detail==Alert.YES) {
+                     pt.send();                   
+                  }  
+                  
+}
+	]]>
+</mx:Script>
+<mx:HTTPService  id="cardCheck"
+    url="https://www.goodlifecredit.com/flex/queries/cardCheck.cfm"
+    useProxy="false"  showBusyCursor="true"
+    result="getResultOk(1,event)">   
+    <mx:request>
+    <cardnumber>{fld_cardnumber.text}</cardnumber>
+    </mx:request> 
+</mx:HTTPService> 
+
+<mx:HTTPService  id="pt"
+    url="https://www.goodlifecredit.com/flex/queries/AuthorizeProxy.cfm"
+    useProxy="false"  showBusyCursor="true" method="POST" fault="problem(event)"
+    result="getResultOk(5,event)">   
+    <mx:request>
+    <clientid>{fld_clientid.text}</clientid>
+ 	<cardnumber>{fld_cardnumber.text}</cardnumber>
+ 	<expiry>{fld_expiry.text}</expiry>
+ 	<cvv>{fld_cvv.text}</cvv>
+ 	<address>{fld_address.text}</address>
+ 	<zipcode>{fld_zipcode.text}</zipcode>
+ 	<type>{fld_transType.selectedValue}</type>
+ 	<amount>{fld_amount.text}</amount>
+    </mx:request> 
+</mx:HTTPService>
+
+
+<mx:CurrencyFormatter id="cf" precision="2" />
+
+
+
+
+
+	<mx:Canvas width="100%" height="100%">
+	 
+    <mx:RadioButtonGroup id="fld_transType"/>
+    <mx:Label x="-12" y="34" text="Type" width="100" fontWeight="bold" textAlign="right"/>
+    <mx:RadioButton x="92" y="34" label="Sale" groupName="transType" id="sale_rb" selected="true" value="NA"/>
+    <mx:RadioButton label="Credit" groupName="transType" id="credit_rb" value="CR" x="172" y="34"/>
+    
+    <mx:Label x="-12" y="64" text="Client" width="100" fontWeight="bold" textAlign="right"/>
+    <mx:Label x="92" y="64" id="fld_clientid"/>
+    
+    <mx:TextInput x="93" y="90" id="fld_cardnumber" maxChars="16" />
+    <mx:Label x="-12" y="96" text="Card Number" width="100" fontWeight="bold" textAlign="right"/>
+   
+    <mx:Label x="-12" y="120" text="Expiration" width="100" fontWeight="bold" textAlign="right"/>
+    <mx:TextInput x="93" y="118" maxChars="4" id="fld_expiry" width="40"/>
+    
+    <mx:Label x="-12" y="153" text="CVV" width="100" fontWeight="bold" textAlign="right"/>
+    <mx:TextInput x="93" y="149" maxChars="4" id="fld_cvv" />
+    
+   
+    <mx:TextInput x="93" y="175" id="fld_address" maxChars="40" />
+    <mx:Label x="-12" y="177" text="Address" width="100" fontWeight="bold" textAlign="right"/>
+   
+    <mx:Label x="-12" y="207" text="Zipcode" width="100" fontWeight="bold" textAlign="right"/>
+    <mx:TextInput x="93" y="203" id="fld_zipcode" maxChars="10" restrict="0-9" />
+   
+    <mx:TextInput x="93" y="233" id="fld_amount" maxChars="10" restrict="0-9." width="71"/>
+    <mx:Label x="-12" y="237" text="Amount" width="100" fontWeight="bold" textAlign="right"/>
+   
+    <mx:Label x="0" y="267" text="Sequence" width="100" fontWeight="bold" textAlign="right" id="sequence_lab"/>
+    <mx:Label x="0" y="284" text="Code" fontWeight="bold" width="100" textAlign="right" id="code_lab"/>
+    <mx:Label x="0" y="301" text="Status" fontWeight="bold" width="100" textAlign="right" id="status_lab"/>
+    <mx:Label x="160" y="267" text="Batch" fontWeight="bold" width="100" textAlign="right" id="batch_lab"/>
+    <mx:Label x="160" y="284" text="Response" fontWeight="bold" width="100" textAlign="right" id="response_lab"/>
+    <mx:Label x="160" y="301" text="Amount" fontWeight="bold" width="100" textAlign="right" id="amount_lab"/>
+    <mx:Label x="160" y="321" text="Result" fontWeight="bold" width="100" textAlign="right" id="result_lab"/>
+    <mx:HBox x="0" y="361" width="100%" horizontalAlign="center">
+    	<mx:Button label="Process" id="process_btn" click="cardCheck.send()"/>
+    </mx:HBox>
+ 
+	
+	</mx:Canvas>
+
+
+</MDIWindow>

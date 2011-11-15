@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<MDIWindow xmlns="org.openzet.containers.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
+    xmlns:zet="http://www.openzet.org/2009/mxml"
+    xmlns:mbg="http://www.openzet.org/2009/mxml"
+    xmlns:local="*"
+	creationComplete="init()"  
+	width="209" height="240" title="Calendar"> 
+	
+<mx:Script>
+	<![CDATA[
+		
+import com.goodlife.BILLING;
+import com.goodlife.CLIENT;
+import com.metrobg.Icons.Images;
+import mx.collections.ArrayCollection;
+import mx.controls.Alert;
+import mx.events.ItemClickEvent;
+import mx.events.MenuEvent;
+import mx.managers.CursorManager;
+import mx.rpc.events.*;
+import mx.styles.StyleManager;
+
+
+
+public function init():void
+{
+	
+}
+
+
+
+
+	]]>
+</mx:Script>
+
+	<mx:Canvas width="100%" height="100%">
+		<mx:DateChooser horizontalCenter="0" top="10" yearNavigationEnabled="true"/>
+	</mx:Canvas>
+			
+</MDIWindow>

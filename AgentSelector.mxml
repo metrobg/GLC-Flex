@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:ComboBox xmlns:mx="http://www.adobe.com/2006/mxml" 
+	change="agentCode = this.selectedItem.data" xmlns:local="*"  creationComplete="init()">
+<mx:Script>
+	<![CDATA[
+		import mx.collections.ArrayCollection;
+		import mx.rpc.http.HTTPService;
+		
+		[Bindable]
+		public var agentCode:Number;
+		public var agentList:ArrayCollection;
+		private var listLoaded:Boolean = false;
+		
+		public function init():void {
+			 
+			   getAgents.send();
+			 
+			  agentList = new ArrayCollection(); 
+			 
+		}
+		
+		  public function set setAgent(code:Number):void 	{
+				if(code > 0)	{
+					for(var i:Number = 0; i < agentList.length; i++)	{
+						if( agentList[i]["data"] == code)	{
+							this.selectedIndex = i;
+							agentCode = agentList[i]["data"];
+						}
+					}
+					this.focusManager.hideFocus();
+				} else {
+					this.agentCode = 0;
+					this.selectedIndex = 0;
+				}
+				
+			}   
+
+private function agentsLoaded(event:Event):void {
+	agentList = ArrayCollection(getAgents.lastResult.agents.agent);
+	//this.agentList.addItemAt({id:0 , name:"--Select Agent--"},0);
+	 dataProvider = agentList;
+	  
+}
+
+	]]>
+</mx:Script>
+
+<mx:HTTPService  id="getAgents"
+    url="https://www.goodlifecredit.com/flex/queries/getAgentsII.cfm"
+    useProxy="false"  showBusyCursor="false"
+    result="agentsLoaded(event)">    
+    <mx:request>
+    <activeonly>N</activeonly>
+    <random>{parentDocument.random}</random>   
+    </mx:request>
+</mx:HTTPService>  
+</mx:ComboBox>
+

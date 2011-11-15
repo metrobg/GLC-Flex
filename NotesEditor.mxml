@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<MDIWindow xmlns="org.openzet.containers.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
+    xmlns:zet="http://www.openzet.org/2009/mxml"
+    xmlns:ns2="com.ace.Input.*"
+    xmlns:local="*"	
+	creationComplete="init()" 
+	width="465" height="304" title="Add / Edit Notes" > 
+	<mx:Script>
+		<![CDATA[
+			
+			public var key:Number = 0;
+			public var textChanged:Boolean = false;
+			
+			private function done(evt:MouseEvent):void {
+			this.close();
+			}
+			
+			private function textUpdated():void {
+				textChanged = true;
+			}
+		]]>
+	</mx:Script>
+
+	<mx:Canvas width="100%" height="100%">
+	<ns2:ValidatedTextArea height="189" left="10" right="10" top="10" id="taNotes" maxDataChars="1000" change="textUpdated();"/>
+		<mx:HBox x="0" y="218" width="100%" height="100%" horizontalAlign="center" verticalAlign="middle">
+			<mx:Button label="Save" click="done(event)" id="btnSaveNote"/>
+		</mx:HBox>
+	</mx:Canvas>
+			
+</MDIWindow>

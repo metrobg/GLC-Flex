@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Application
+    xmlns:mx="http://www.adobe.com/2006/mxml"
+    xmlns:zet="http://www.openzet.org/2009/mxml"
+    width="100%" height="100%"
+    initialize="initializeHandler();" xmlns:local="*">
+
+    
+
+    <mx:Script>
+    <![CDATA[
+
+
+    import mx.controls.Alert;
+    import mx.controls.CheckBox;
+    import org.openzet.containers.MDIWindow;
+    import org.openzet.events.MDIEvent;
+    
+ 			 
+private var tq:TabQuote;
+						
+private function initializeHandler():void
+{
+    width = NaN;
+    height = NaN;
+    
+    addTabQuote();
+}
+
+ private function addTabQuote():void {
+	tq = new TabQuote();
+	mdi.addChild(tq);
+	/* tq.setSize(759,567); 
+	tq.showMaxButton = false;
+	tq.resizable = false;
+	tq.showCloseButton = false;   	 */ 
+}
+    
+private function restoreDefault():void {
+    
+   tq.setSize(759,567);
+
+}
+
+private function childrenFullHandler(event:MDIEvent):void    {
+    Alert.show("You can populate " + mdi.maxChildren + " number of windows for maximum count");
+}	
+    ]]>
+    </mx:Script>
+   
+    
+	<mx:NumberFormatter id="calcnf" precision="3" />
+	<mx:NumberFormatter id="nf" precision="3" useThousandsSeparator="false" />
+	<mx:NumberFormatter id="nf1" precision="2" useThousandsSeparator="false" />
+	<mx:NumberFormatter id="nf6" precision="6" useThousandsSeparator="false" />
+	
+
+   <zet:MDI id="mdi" width="100%" height="100%"      maxChildren="12"  childrenFull="childrenFullHandler(event);">
+       
+    </zet:MDI>
+</mx:Application>

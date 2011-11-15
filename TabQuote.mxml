@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<MDIWindow xmlns="org.openzet.containers.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
+    xmlns:zet="http://www.openzet.org/2009/mxml"
+    xmlns:mbg="http://www.openzet.org/2009/mxml" 
+    titleIcon="{Images.reportIcon}" 
+    xmlns:local="*"
+    xmlns:ns1="com.metrobg.Components.*"	
+	creationComplete="init()" 
+	width="369" height="424" title="Report Runner"> 
+	
+	<mx:Script>
+		<![CDATA[
+		import com.metrobg.Icons.Images;	
+		import mx.collections.ArrayCollection;
+		
+		public var defaultReportDates:String;
+		private var today:Date = new Date();
+		private var PDFBase:String = "http://dbase.metrobg.com/GLC/";
+		private var reportArray:Array;
+		
+		[Bindable] private var reportAC:ArrayCollection;
+		private function init():void{
+		reportAC = new ArrayCollection;
+			fromDate_df.text = ""
+			toDate_df.text   = ""
+			 
+			 defaultReportDates = fromDate_df.text;
+			 reportArray = new Array;
+ 
+	 
+	 
+	  
+	 }
+		
+		
+		private function runReport(val:Number):void {
+			
+		}
+		private function resetStates():void {
+			
+		}
+		private function addState():void {
+			
+		}
+		private function reportSelected(event:Event):void {
+	
+	parentDocument.stateSelector_cb.visible = false;
+	parentDocument.t1.visible = false;
+	reset_btn.visible = false;
+	
+	
+	ShowHideReportDateFields(report_cb.selectedItem.datefields);
+	
+	ros.visible = report_cb.selectedItem.options;
+	parentDocument.ta1.text += "sort visible :" + report_cb.selectedItem.options3 + "\n";
+	ros.options2.visible = report_cb.selectedItem.options2;
+	ros.options1.visible = report_cb.selectedItem.options1;
+	ros.options3.visible = report_cb.selectedItem.options3;
+	
+	/* so manager 2 can't access reports with dollar totals */
+	if(Number(parentDocument.txtROLE) == 5) {
+		ros.DisplayAmounts.enabled = false;
+	}
+	
+	ros.agentSel.setAgent = 0;				// set the agent selector to all agents (code 0)
+	   if(report_cb.selectedItem.xoptions) {
+	        parentDocument.stateSelector_cb.visible = true;
+		 	parentDocument.t1.visible = true;
+		 	reset_btn.visible = true; 
+		}
+		// added 09/22/2008
+		if(report_cb.selectedItem.value == 3) {  // delinquent client report requires no date
+			fromDate_df.text = defaultReportDates;
+			toDate_df.text   = defaultReportDates;
+		}
+}
+private function ShowHideReportDateFields(status:String):void {
+	   if(status == "H") {
+	  		fromDate_df.visible = false;
+		 	toDate_df.visible = false;
+		 	label13.visible = false;
+		 	label14.visible = false
+		 	}
+	if (status == "S"){
+		fromDate_df.visible = true;
+		 toDate_df.visible = true;
+		 label13.visible = true;
+		 label14.visible = true
+	}
+}
+		
+		]]>
+	</mx:Script>
+   <mx:Canvas height="100%" width="100%">
+   	<mx:DateField x="129" y="59" showToday="true" id="fromDate_df" yearNavigationEnabled="true" editable="true"/>
+   <mx:DateField x="129" y="90" showToday="true" id="toDate_df" yearNavigationEnabled="true" editable="true"/>
+   <mx:Label x="80" y="61" text="From" fontWeight="bold" styleName="textdata" id="label13"/>
+   <mx:Label x="80" y="92" text="To" fontWeight="bold" styleName="textdata" id="label14"/>
+   <mx:ComboBox x="75" y="29"  width="150" change="reportSelected(event)" id="report_cb" enabled="true" dataProvider="{reportAC}" />
+   <local:ReportOptionSelector  id="ros" y="121" x="17" width="191" visible="true" height="130"/>
+   <mx:Button x="129" y="352" label="Run" id="run_btn" icon="{Images.formIcon}" click="runReport(Number(report_cb.selectedItem.value))"
+   	 enabled="true"/>
+   <mx:Label x="10" y="6" text="current report" width="147" textAlign="center" fontWeight="bold"
+   	         visible="true"  id="reportname_lbl"/>
+  
+       
+     <mx:Text x="17" y="268" id="t1" width="150" enabled="false"/>
+	<mx:ComboBox x="7" y="160" id="stateSelector_cb" visible="true" close="addState();"
+		 toolTip="Select up to five States to appear on the report"/>
+	 
+	<mx:Image x="53" y="190" id="reset_btn" source="{Images.removeIcon}" click="resetStates();" toolTip="Click to clear selections" 
+		        visible="false" buttonMode="true" useHandCursor="true" width="16" height="16"/>
+
+
+	 		 	<mx:TextArea x="-3" y="307" id="ta1" visible="false"/>
+	 		 	 
+   </mx:Canvas>
+	 
+
+			
+</MDIWindow>

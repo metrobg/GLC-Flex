@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<MDIWindow xmlns="org.openzet.containers.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
+    xmlns:zet="http://www.openzet.org/2009/mxml"
+    xmlns:ns2="com.ace.Input.*" xmlns:local="*"	
+	creationComplete="init()" 
+	width="634" height="368" title="Add / Edit Leads" layout="absolute" > 
+	
+	<mx:Script source="LeadsEditorACD.as" />
+
+<mx:RemoteObject id="gateway" destination="ColdFusion" 
+    	 source="com.goodlife.LeadsGateway" 
+		result="onServiceDataReady(event)" showBusyCursor="true"
+		fault="onServiceFault(event)">
+		   <mx:method name="getLeadById" />
+		   <mx:method name="saveLead" />
+		   <mx:method name="deleteLeadById" />
+		   <mx:method name="getAllLeads" />		  
+	</mx:RemoteObject>
+     
+
+	<mx:DataGrid width="283" id="dgLeads" itemClick="gridItemSelected(event);"
+	   visible="true" height="270" top="10" left="10">
+		<mx:columns>
+			<mx:DataGridColumn headerText="Lead Source" dataField="DESCRIPTION" width="100"/>
+		</mx:columns>
+	</mx:DataGrid>
+
+
+<mx:Form height="204" id="form1" top="10" horizontalScrollPolicy="off" verticalScrollPolicy="off" left="302" width="284">
+			<mx:FormItem label="Description" required="true">
+			<ns2:ValidatedTextInput minDataChars="1" id="DESCRIPTION" text="{lead.DESCRIPTION}" maxDataChars="35"/>
+			</mx:FormItem>			
+			<mx:FormItem label="Code" required="true">
+			<ns2:ValidatedTextArea minDataChars="0" id="TRANSACTION_KEY" text="{lead.TRANSACTION_KEY}" maxDataChars="45"
+				 editable="false"/>
+			</mx:FormItem>
+		</mx:Form>
+			
+			
+			            <!--M A I N   D A T A   V I E W -->
+			
+			<!--A D D  /  E D I T   P A N E L -->
+			<mx:HBox y="222" right="28" verticalAlign="middle" horizontalAlign="center" height="31" left="302">
+						<mx:Button label="Add" id="btn_add" toolTip="Click here to add a new Lead" click="buttonHandler(event);"
+							       useHandCursor="true" buttonMode="true" icon="{Images.addIcon}"/>
+						<mx:Button label="Delete" id="btn_delete" toolTip="Click here to add a new Lead Source" click="buttonHandler(event)"
+							       useHandCursor="true" buttonMode="true" icon="{Images.removeIcon}"/>
+						<mx:Button label="Save" id="btn_save" toolTip="Click here to save Lead" click="buttonHandler(event)"
+							       useHandCursor="true" buttonMode="true" icon="{Images.saveIcon}"/>
+			</mx:HBox>
+			<mx:HBox x="10" y="288" width="283" horizontalAlign="center" height="30" verticalAlign="middle">
+						<mx:Button label="Load" id="btn_load" click="gateway.getAllLeads()" icon="{Images.listIcon}"
+							       useHandCursor="true" buttonMode="true" toolTip="Click here to List All Leads"/>
+			</mx:HBox>
+			
+</MDIWindow>

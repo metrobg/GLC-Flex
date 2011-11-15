@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+<MDIWindow xmlns="org.openzet.containers.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
+    xmlns:zet="http://www.openzet.org/2009/mxml"
+    xmlns:mbg="http://www.openzet.org/2009/mxml"
+    xmlns:local="*"
+	creationComplete="init()"  defaultButton="{btn_login}"
+	width="575" height="230" title="Advisory"> 
+	
+<mx:Script>
+	<![CDATA[
+		import mx.utils.Base64Encoder;
+		import com.goodlife.Events.LoginCompleteEvent;
+		
+import com.goodlife.BILLING;
+import com.goodlife.CLIENT;
+import com.metrobg.Icons.Images;
+import mx.collections.ArrayCollection;
+import mx.controls.Alert;
+import mx.events.ItemClickEvent;
+import mx.events.MenuEvent;
+import mx.managers.CursorManager;
+import mx.rpc.events.*;
+import mx.styles.StyleManager;
+import com.goodlife.Events.LoginComplete;
+
+
+
+public function init():void
+{
+	btn_login.label = "Accept";
+	this.title = "version: " + parentDocument.version;
+}
+
+			private function tryLogin(event:Event):void
+			{
+				if(btn_login.label == "Login") {
+				if (newpassword_fld.text == confirmpassword_fld.text)
+				{
+					 
+					var encoder:Base64Encoder = new Base64Encoder();
+					encoder.encode("fblegal:flex");
+					login.headers.Authorization = "Basic " + encoder.toString();
+					login.send();
+				}
+				else
+				{
+					newpassword_fld.text='';
+					confirmpassword_fld.text='';
+					Alert.show("The new Password field and the confirmation field do not match", "Password Mismatch");
+				}
+
+    } else {
+    	               btn_login.label = "Login";
+    	               frm_login.visible = true;
+    	               ta1.visible = false;
+    	               this.title = "User Login";
+    	               
+    }
+			}
+
+
+
+
+			private function getResultOk(r:Number, event:Event):void
+			{
+				var kount:Number=0;
+				var returnCode:Number=0;
+				switch (r)
+				{
+					case 5:
+						if (login.lastResult.login.status == "1")
+						{							
+							newpassword_fld.text="";
+							confirmpassword_fld.text="";
+							var le:LoginCompleteEvent = new LoginCompleteEvent(LoginCompleteEvent.COMPLETE);
+							le.userData = {user:login.lastResult.login.user,role:login.lastResult.login.level};
+							dispatchEvent(le);
+							this.close();
+
+						}
+						else
+						{
+							this.title=login.lastResult.login.message;
+							focusManager.setFocus(logname_fld);
+
+						}
+
+
+						break;
+				}
+			}
+	]]>
+</mx:Script>
+
+<mx:HTTPService id="login" 
+    url="http://www.goodlifecredit.com/flex/queries/login.cfm"
+    useProxy="false" showBusyCursor="true"
+    result="getResultOk(5,event)">
+   <mx:request>
+      <username>{logname_fld.text}</username>
+      <password>{password_fld.text}</password>
+      <newpassword>{newpassword_fld.text}</newpassword>
+      <confirmpassword>{confirmpassword_fld.text}</confirmpassword>
+ 
+   </mx:request>
+</mx:HTTPService>  
+
+<mx:String id="warning_txt">
+Use of this system is for Authorized GLC users only.
+Users of this system are subject to and expressly 
+consent to monitoring of their activities by system administrators. 
+All transactions are permanently recorded and linked with your User ID. 
+If you are not an authorized user, do not proceed !!.
+</mx:String> 
+<mx:Canvas height="125">
+	
+
+ <mx:HBox height="109" visible="false" id="frm_login">
+ 	
+
+	     
+		<mx:Form x="10" y="10" width="220" height="91"> 
+			<mx:FormItem label="User" width="159" required="true">
+				<mx:TextInput id="logname_fld" maxChars="20" enabled="true" width="110" click="logname_fld.text=''"
+					 color="#000000" text=""/>
+			</mx:FormItem>
+			<mx:FormItem label="Password" required="true" width="159">
+				<mx:TextInput width="110" id="password_fld" maxChars="20" displayAsPassword="true" editable="true" 
+					color="#000000" text=""/>
+			</mx:FormItem>
+		</mx:Form>
+  <mx:Label text="Optional" fontWeight="bold" enabled="true"/>
+		<!--<mx:Text text="{warning_txt}" y="139" fontWeight="bold" fontSize="10" height="93" width="543"/> -->
+		<mx:Form x="262" y="10" width="252" height="91"> 
+			<mx:FormItem label="New Password" width="201" styleName="textdata">
+				<mx:TextInput id="newpassword_fld" maxChars="20" enabled="true" width="110" displayAsPassword="true"
+					color="#000000"/>
+			</mx:FormItem>
+			<mx:FormItem label="Confirm Password" required="false" width="201" styleName="textdata">
+				<mx:TextInput width="110" id="confirmpassword_fld" maxChars="20" displayAsPassword="true" color="#000000"/>
+			</mx:FormItem>
+		</mx:Form>
+		
+	 
+ </mx:HBox>
+ <mx:Text text="{warning_txt}" height="105" fontSize="12" fontWeight="bold" width="521" y="10" horizontalCenter="0" id="ta1"/>
+</mx:Canvas>			
+	<mx:HBox width="100%" height="32" horizontalAlign="center" verticalAlign="middle">
+		<mx:Button label="Login" id="btn_login" click="tryLogin(event)"/>
+	</mx:HBox>
+</MDIWindow>

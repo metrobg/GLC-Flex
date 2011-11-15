@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="utf-8"?>
+<MDIWindow xmlns="org.openzet.containers.*"
+		   xmlns:mx="http://www.adobe.com/2006/mxml"
+		   xmlns:zet="http://www.openzet.org/2009/mxml"
+		   xmlns:ns2="com.ace.Input.*"
+		   xmlns:local="*"
+		   creationComplete="init()"
+		   width="600"
+		   height="372"
+		   title="Client Adjustments" xmlns:ns1="com.metrobg.Components.*">
+	<mx:Script>
+	<![CDATA[
+		import mx.utils.Base64Encoder;
+		import mx.collections.ArrayCollection;
+
+import com.metrobg.Classes.*;
+import mx.controls.Alert;
+import com.metrobg.Icons.Images
+import mx.managers.PopUpManager;
+import ascb.util.DateUtilities;
+import ascb.util.DateFormat;
+		
+public var amount:Number;
+public var message:String;
+public var subType:String;
+
+[Bindable] public var newDate:String;
+[Bindable] public var AdjCodesAC:ArrayCollection;
+
+private var today:Date = new Date;
+   
+[Bindable]
+private var ReportRange: Object = new Object();
+
+[Bindable]
+private var AdjRange: Object = new Object();
+
+
+public function doInit():void {
+	
+    today = new Date;
+	ReportRange.rangeEnd = today;
+	ReportRange.rangeStart = new Date(DateUtilities.addTo(ReportRange.rangeEnd,0,0,-10));
+	report_df.selectableRange = ReportRange;
+	
+	/* set parameters for the adjustment dates */
+	AdjRange.rangeEnd = new Date(DateUtilities.addTo(today,0,0,10));
+	AdjRange.rangeStart = new Date(DateUtilities.addTo(today,0,0,-10));
+	adjustment_df.selectableRange = AdjRange;
+	
+	 
+	CreditReport_btn.enabled = true;
+	if (parentApplication.clientCreditReport.text == 'Not Received') {
+		CreditReport_btn.visible = true;
+		lblReportMsg.text = "Click Here To Update Credit Report Status";
+	} else {
+		CreditReport_btn.visible = false;
+		lblReportMsg.text = parentApplication.clientCreditReport.text;
+	}
+	 
+}	
+			
+private function newPaymentDate():void {
+	 
+	if( newDate_fld.text == ""|| newDate_fld.text == null) {
+	      Alert.show("Payment  Date invalid",
+	 	          "Attention",0,this,null,Images.stopIcon,0);
+	 	          return;
+	 	 }
+	 
+	parentApplication.service.changeBillingDate(parentApplication.clientSTATUS.text,newDate_fld.text);
+	newDate_fld.text = "";
+	 
+}
+
+private function setAttempts():void {
+	 
+	 	parentApplication.service.setCardAttempts(parentApplication.clientSTATUS.text,cardAttempts_ns.value);
+	 	cardAttempts_ns.value = 0;
+	 
+} 
+private function vadjustBalance():void {
+	
+	if( adjustment_df.text == ""||  adjustment_df.text == null) {
+	      Alert.show("Adjustment Date invalid",
+	 	          "Attention",0,this,null,Images.stopIcon,0);
+	 	          return;
+	 	 }
+	 if( amount_fld.text =="" || amount_fld.text == null) {
+	 	  Alert.show("Adjustment Amount invalid",
+	 	          "Attention",0,this,null,Images.stopIcon,0);
+	 	          return;
+	 }	
+	 if( message_fld.text =="" || message_fld.text == null) {
+	 	  Alert.show("Adjustment Reason invalid",
+	 	          "Attention",0,this,null,Images.stopIcon,0);
+	 	          return;
+	 }	  
+	
+	    message = message_fld.text;
+	    subType = type_cb.selectedLabel;
+	    amount = Number(amount_fld.text);
+	   parentApplication.service.adjBalance(parentApplication.clientSTATUS.text,
+	   										adjustment_df.text,
+	   										amount_fld.text,message_fld.text,type_cb.selectedItem.data);
+	 adjustment_df.text = '';
+	 amount_fld.text = '';
+	 message_fld.text = '';
+	 type_cb.selectedIndex = 0;
+	 message_cb.selectedIndex = 0;
+}
+private function updateReportStatus():void {
+	   if( report_df.text == ""|| report_df.text == null) {
+	        Alert.show("Credit Report Date invalid",
+	 	          "Attention",0,this,null,Images.stopIcon,0);
+	 	          return;
+	 	 }
+	
+	 parentApplication.service.crReportRcvd(parentApplication.clientSTATUS.text,report_df.text);
+	 
+	 
+}
+private function checkReason():void {
+		if(message_cb.selectedLabel == "Other") {
+			message_fld.enabled = true;
+			message_fld.text = '';
+			
+		}  else {
+			message_fld.enabled = false;
+			message_fld.text = message_cb.selectedLabel;
+		}
+	}	
+
+	]]>
+</mx:Script>
+
+<mx:CurrencyFormatter id="cf" precision="2" />
+
+
+
+
+
+	<mx:Canvas width="100%" height="100%">
+	
+	 
+		<mx:DateField x="120" y="37" id="newDate_fld" color="#000000"/>
+		<mx:Button y="79" label="Update" click="newPaymentDate();" horizontalCenter="-137"/>
+		<mx:Label x="12" y="39" text="New Billing Date" fontWeight="bold"/>
+		<mx:VRule x="278" y="0" width="6" height="100%"/>
+	<mx:TextInput x="65" y="229" id="message_fld" color="#000000" enabled="false" toolTip="Select other from the list above to enter your own reason." maxChars="25"/>
+	<mx:Button y="296" label="Update" click="vadjustBalance();" horizontalCenter="-137"/>
+	<mx:ComboBox x="61" y="173" width="112" id="type_cb" labelField="label">
+	  <mx:ArrayCollection>
+		  <mx:Object data="0" label="+ Add"/>
+		  <mx:Object data="1" label="- Subtract"/>
+	 </mx:ArrayCollection>
+	</mx:ComboBox>
+	<mx:TextInput x="181" y="173" width="44" maxChars="6" id="amount_fld" color="#000000"/>
+	<mx:Label x="190" y="154" text="Amount" fontWeight="bold"/>
+	<mx:Label x="106" y="154" text="Type" fontWeight="bold"/>
+	<mx:DateField x="135" y="263" id="adjustment_df" showToday="true"/>
+	<mx:Label x="39" y="267" text="Effective Date" fontWeight="bold"/>
+	<mx:Label x="10" y="203" text="Reason" fontWeight="bold" width="64"/>
+	<ns1:VAComboBox x="61" y="201" dataProvider="{AdjCodesAC}" id="message_cb" width="164" close="checkReason();" 
+		labelField="LABEL" dataField="DATA"/>
+	<mx:Label y="131" text="Adjust Client Balance" width="260" fontWeight="bold" fontSize="12" textAlign="center" left="10"/>
+	<mx:Label y="131" text="Credit Report Status" fontWeight="bold" fontSize="12" textAlign="center" right="10" width="260"/>
+	<mx:Label y="10" text="Change Billing Date" width="260" fontWeight="bold" fontSize="12" textAlign="center" left="10"/>
+	<mx:Label y="10" text="Change Card Attempts" fontWeight="bold" fontSize="12" textAlign="center" right="10" width="260"/>
+	<mx:HRule x="10" y="115" width="260" height="8"/>
+	<mx:HRule x="292" y="115" width="260" height="8"/>
+	 
+		<mx:NumericStepper x="469" y="37" minimum="0" maximum="20" stepSize="1" id="cardAttempts_ns" value="0" color="#000000"/>
+		<mx:Label x="330" y="39" text="Set Card Attempts to" fontWeight="bold"/>
+		<mx:Button y="79" label="Update" click="setAttempts();" horizontalCenter="131"/>
+		<mx:Label x="306" y="154" text="Click Here To Update Credit Report Status" fontWeight="bold" id="lblReportMsg"/>
+		<mx:Button y="213" label="Update" click="updateReportStatus();" id="CreditReport_btn" horizontalCenter="131"/>
+		<mx:DateField x="432" y="171" id="report_df"/>
+		<mx:Label x="336" y="173" text="Effective Date" fontWeight="bold"/>
+	
+	
+	
+	</mx:Canvas>
+
+
+</MDIWindow>

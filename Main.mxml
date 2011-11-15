@@ -1,0 +1,463 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:zet="http://www.openzet.org/2009/mxml" xmlns:mbg="http://www.metrobg.com/2009/mxml"
+                xmlns:ns2="org.openzet.containers.*" xmlns:ns1="com.metrobg.Components.*" xmlns:ace="com.ace.Input.*"
+                xmlns:local="*" width="100%" height="100%"
+                creationComplete="init();">
+    <mx:Script source="Main.as" />
+    <mx:RemoteObject id="service" destination="ColdFusion" source="flex.queries.GLC"
+                     result="onServiceDataReady(event)" showBusyCursor="true" fault="onServiceFault(event)">
+        <mx:method name="deleteClient" />
+        <mx:method name="getLeads" />
+        <mx:method name="getAdjustmentCodes" />
+        <mx:method name="getAgents" />
+        <mx:method name="getHistory" />
+        <mx:method name="getClientNotes" />
+        <mx:method name="getStates" />
+        <mx:method name="saveNotes" />
+        <mx:method name="sendWelcome" />
+        <mx:method name="setCardAttempts" />
+        <mx:method name="changeBillingDate" />
+        <mx:method name="crReportRcvd" />
+        <mx:method name="adjBalance" />
+        <mx:method name="decodeCard" />
+        <mx:method name="getReports" />
+    </mx:RemoteObject>
+    <mx:RemoteObject id="gateway" destination="ColdFusion" source="com.goodlife.GLCGateway"
+                     result="onServiceDataReady(event)" showBusyCursor="true" fault="onServiceFault(event)">
+        <mx:method name="getClientById" />
+        <mx:method name="getClientByName" />
+        <mx:method name="getClientBySSN" />
+        <mx:method name="getClientByCC" />
+        <mx:method name="saveClient" />
+        <mx:method name="deleteClientById" />
+        <mx:method name="getBillingById" />
+        <mx:method name="saveBilling" />
+        <mx:method name="deleteBillingById" />
+    </mx:RemoteObject>
+    <mx:CurrencyFormatter id="cf" precision="2" />
+    <mx:NumberFormatter id="nf" precision="2" useThousandsSeparator="false" />
+    <mx:PhoneFormatter id="pf" formatString="(###) ###-####" />
+    <mx:PhoneFormatter id="ssn" formatString="###-##-####" />
+    <mx:DateFormatter id="df" formatString="DD-MMM-YYYY" />
+    <mx:DateFormatter id="df1" formatString="MM/DD/YYYY" />
+    <mx:MenuBar x="0" y="10" width="100%"
+                showRoot="false" id="appMenu" visible="false" />
+    <mx:ApplicationControlBar width="100%" x="0" defaultButton="{btn_search}"
+                              id="appControlBar" visible="false">
+        <mx:Button id="btn_search" label="Find" useHandCursor="true"
+                   click="clientLookup()" buttonMode="true" enabled="false"
+                   icon="{Images.searchIcon}" />
+        <mx:Canvas height="60" id="canvas5">
+            <ace:ValidatedTextInput width="158" id="txtSearch" click="txtSearch.text=''"
+                                    restrict="0-9" maxDataChars="20" toolTip="Enter the Client id, Social Security Number, Name or Credit Card Number you want to search for"
+                                    text="" />
+            <mx:ComboBox id="searchHistory_cbx" dataProvider="{searchAC}" selectedIndex="0"
+                         close="updateSearchField();" width="158" x="0"
+                         y="28" />
+        </mx:Canvas>
+        <!-- R A D I O     B U T T O N S		 -->
+        <mx:RadioButtonGroup id="searchGroup" itemClick="restrictInput(event)" />
+        <mx:VBox height="100%">
+            <mx:Spacer height="1" />
+            <mx:RadioButton label="Client" groupName="searchGroup" id="client_rb"
+                            value="ID" toolTip="Click here to search by Client ID" selected="true"
+                            fontWeight="bold" styleName="headerLabel" />
+            <mx:RadioButton label="SSN" id="ssn_rb" selected="false"
+                            value="SSN" toolTip="Click here to search by Social Security Number" groupName="searchGroup"
+                            fontWeight="bold" styleName="headerLabel" />
+            <mx:Spacer height="1" />
+        </mx:VBox>
+        <mx:VBox height="100%">
+            <mx:Spacer height="1" />
+            <mx:RadioButton label="Name" groupName="searchGroup" id="name_rb"
+                            value="N" toolTip="Click here to search by Client Name" selected="false"
+                            fontWeight="bold" styleName="headerLabel" />
+            <mx:RadioButton label="Credit Card" groupName="searchGroup" id="cc_rbg"
+                            value="CC" selected="false" toolTip="Click here to search by Credit Card Number"
+                            enabled="true" fontWeight="bold" styleName="headerLabel" />
+            <mx:Spacer height="1" />
+        </mx:VBox>
+        <!-- I M A G E    A C T I O N S -->
+        <mx:VBox width="120" height="100%">
+            <mx:Grid>
+                <mx:GridRow width="100%" height="100%">
+                    <mx:GridItem width="100%" height="100%">
+                        <mx:Image id="dl" source="{Images.downloadIcon}" click="downloadMode();"
+                                  toolTip="Click to download Merge records" buttonMode="true" useHandCursor="true" />
+                    </mx:GridItem>
+                    <mx:GridItem width="100%" height="100%">
+                        <mx:Image id="dc" source="{Images.delete2Icon}" toolTip="Delete Client"
+                                  buttonMode="true" useHandCursor="true" click="preDeleteClient()" />
+                    </mx:GridItem>
+                    <mx:GridItem width="100%" height="100%">
+                        <mx:Image id="nc" source="@Embed(source='assets/User24.png')" toolTip="New Client"
+                                  buttonMode="true" useHandCursor="true" click="preNewClient()" />
+                    </mx:GridItem>
+                    <mx:GridItem width="100%" height="100%">
+                        <mx:Image id="rr" source="{Images.reportIcon}" toolTip="Click to open Report Runner"
+                                  buttonMode="true" useHandCursor="true" click="addReportWindow()" />
+                    </mx:GridItem>
+                </mx:GridRow>
+                <mx:GridRow width="100%" height="100%">
+                    <mx:GridItem width="100%" height="100%">
+                        <mx:Image id="cal" source="{Images.calendarIcon}" toolTip="Click to Show / Hide Calendar"
+                                  buttonMode="true" click="addCalendarWindow()" useHandCursor="true" />
+                    </mx:GridItem>
+                    <mx:GridItem width="100%" height="100%">
+                        <mx:Image id="cp" source="{Images.cut2Icon}" toolTip="Click to cut / paste client name"
+                                  buttonMode="true" useHandCursor="true" click="CutPasteMode()" />
+                    </mx:GridItem>
+                    <mx:GridItem width="100%" height="100%">
+                        <mx:Image id="aw" source="{Images.tools2Icon}" toolTip="Click to Show / Hide Adjustments"
+                                  buttonMode="true" click="addAdjustmentWindow()" useHandCursor="true" />
+                    </mx:GridItem>
+                    <mx:GridItem width="100%" height="100%">
+                        <mx:Image id="cc" source="{Images.cardIcon}" toolTip="Click to Process Credit Card"
+                                  buttonMode="true" click="collectPayment()" useHandCursor="true" />
+                    </mx:GridItem>
+                </mx:GridRow>
+            </mx:Grid>
+        </mx:VBox>
+        <mx:Spacer width="73" height="8" />
+        <!--  C L I E N T   S T A T U S   C A N V A S  -->
+        <mx:Canvas width="371" height="56" id="canvas4">
+            <mx:Label text="Client ID:" width="85" fontSize="10"
+                      fontWeight="bold" height="21" id="label1"
+                      x="0" textAlign="right" />
+            <mx:Label id="clientSTATUS" x="90" textAlign="left"
+                      y="0" width="119" />
+            <mx:Label text="Sales Rep: " width="85" fontSize="10"
+                      fontWeight="bold" id="label2" y="18"
+                      x="2" textAlign="right" />
+            <mx:Label x="90" y="18" textAlign="left"
+                      id="clientRep" width="119" />
+            <mx:Label text="Signup:" fontWeight="bold" width="85"
+                      fontSize="10" id="label4" x="2"
+                      y="35" textAlign="right" />
+            <mx:Label text="User:" fontWeight="bold" width="54"
+                      fontSize="10" y="35" textAlign="right"
+                      right="109" />
+            <mx:Label text="Role:" fontWeight="bold" width="54"
+                      fontSize="10" y="18" textAlign="right"
+                      right="109" />
+            <mx:Label text="Status:" fontWeight="bold" width="54"
+                      fontSize="10" y="0" textAlign="right"
+                      right="109" />
+            <mx:Label x="90" y="35" id="clientSignup"
+                      textAlign="left" width="119" />
+            <mx:Label y="35" textAlign="left" width="97"
+                      id="lblUSERID" right="5" />
+            <mx:Label y="18" textAlign="left" width="97"
+                      id="lblROLE" right="5" />
+            <mx:Label y="0" textAlign="left" width="97"
+                      id="lblSTATUS" right="5" />
+        </mx:Canvas>
+    </mx:ApplicationControlBar>
+    <mx:XMLList id="dp2">
+        <root>
+            <item label="Style" enabled="true">
+                <item label="Barnes" enabled="true" value="Styles/PlainStyles/jp_barnes" index="50" />
+                <item label="Darkness" enabled="true" value="Styles/PlainStyles/jp_darknes" index="50" />
+                <item label="GMSBlue" enabled="true" value="Styles/PlainStyles/GMSBlue" index="50" />
+                <item label="Natural" enabled="true" value="Styles/PlainStyles/jp_natural" index="50" />
+                <item label="Offshore" enabled="true" value="Styles/PlainStyles/ps_Offshore" index="50" />
+                <item label="Parrot" enabled="true" value="Styles/PlainStyles/jp_parrot" index="50" />
+                <item label="Rust" enabled="true" value="Styles/PlainStyles/ps_rust" index="50" />
+                <item label="Teq Sunrise" enabled="true" value="Styles/PlainStyles/ps_TeqSun" index="50" />
+                <item label="Wedding" enabled="true" value="Styles/PlainStyles/jp_wedding" index="50" />
+            </item>
+            <item label="System" enabled="true" value="-1" index="51">
+                <!--dp2.item[5].@enabled -->
+                <item label="Log Out" enabled="true" value="-1" index="-1" />
+            </item>
+            <item label="Help" enabled="true" value="-2" index="51" />
+            <!--dp2.item[6].@enabled -->
+            <item label="Modules" enabled="true" value="0" index="1">
+                <item label="New Client" enabled="true" value="0" index="16" />
+                <item label="Sales Reps" enabled="true" value="0" index="11" />
+                <item label="Users" enabled="true" value="UserEditor|userEditor" index="12" />
+                <item label="Adj. Codes" enabled="true" value="0" index="15" />
+                <item label="Referral Codes" enabled="true" value="Leads|leadsEditor" index="13" />
+            </item>
+            <item label="Actions" enabled="true" value="0" index="2">
+                <item label="Send Welcome Pkt" enabled="true" value="SendWelcome" index="22" />
+                <item label="Build 19 File" enabled="true" value="SendWelcome" index="23" />
+                <item label="Change Billing Date" enabled="false" value="CBD" index="24" />
+                <item label="Adjust Balance" enabled="false" value="AB" index="25" />
+                <item label="Change Card Attempts" enabled="false" value="CCA" index="26" />
+                <item label="Credit Report Status" enabled="false" value="CBD" index="27" />
+            </item>
+        </root>
+    </mx:XMLList>
+    <zet:MDI id="mdi" width="100%" height="100%">
+        <zet:MDIWindow id="ClientWindow" x="29" y="44"
+                       width="650" height="500" windowState="normal"
+                       visible="false" maxWidth="650" maxHeight="500">
+            <mx:TabNavigator width="100%" height="450" creationPolicy="all" id="tn">
+                <mx:Canvas label="Summary" width="100%" height="100%"
+                           horizontalScrollPolicy="off" id="cnv_summary">
+                    <mx:Label x="10" y="30" text="Name:"
+                              fontWeight="bold" width="62" textAlign="right" />
+                    <mx:Label x="310" y="50" text="Billing Date:"
+                              fontWeight="bold" width="94" textAlign="right" />
+                    <mx:Label x="310" y="30" text="Balance:"
+                              fontWeight="bold" width="94" textAlign="right" />
+                    <mx:Label x="310" y="70" text="Last Attempt:"
+                              fontWeight="bold" width="94" textAlign="right" />
+                    <mx:Label x="310" y="96" text="Next Payment:"
+                              fontWeight="bold" width="94" textAlign="right" />
+                    <mx:Label x="310" y="116" text="Email Address:"
+                              fontWeight="bold" width="94" textAlign="right" />
+                    <mx:Label x="310" y="136" text="Alternate Ph.:"
+                              fontWeight="bold" width="94" textAlign="right" />
+                    <mx:Label x="10" y="47" text="Address:"
+                              width="62" fontWeight="bold" textAlign="right" />
+                    <mx:Label x="10" y="117" text="Phone:"
+                              width="62" fontWeight="bold" textAlign="right" />
+                    <mx:Label x="10" y="137" text="DOB:"
+                              width="62" fontWeight="bold" textAlign="right" />
+                    <mx:Label x="10" y="157" text="SSN:"
+                              width="62" fontWeight="bold" textAlign="right" />
+                    <mx:Label x="10" y="177" text="Referrer:"
+                              width="62" fontWeight="bold" textAlign="right" />
+                    <mx:Text x="73" y="30" width="220"
+                             id="clientName" text="" />
+                    <mx:Text x="73" y="47" width="220"
+                             id="clientAddress" text="" />
+                    <mx:Text x="73" y="116" text=""
+                             width="167" id="clientPhone" />
+                    <mx:Text x="73" y="64" text=""
+                             width="220" id="clientAddress2" />
+                    <mx:Text x="73" y="81" text=""
+                             width="167" id="clientSuite" />
+                    <mx:Text x="73" y="137" text=""
+                             width="94" id="clientDOB" />
+                    <mx:Text x="73" y="157" text=""
+                             width="94" id="clientSSN" />
+                    <mx:Text x="73" y="177" width="213" id="clientSource" />
+                    <mx:Text x="406" y="30" width="212" id="clientBalance" />
+                    <mx:Text x="406" y="50" width="212" id="clientInitial_Billing" />
+                    <mx:Text x="406" y="70" width="212" id="clientLast_Billing" />
+                    <mx:Text x="406" y="96" width="212" id="clientNext_Billing" />
+                    <mx:LinkButton id="clientEmail" click="goToEmail(clientEmail.label)" textAlign="left"
+                                   rollOverColor="#ffff66" textDecoration="underline" y="114"
+                                   x="406" width="212" />
+                    <mx:Text x="406" y="136" width="190" id="clientPhone2" />
+                    <mx:Text x="406" y="156" width="190" id="clientCreditReport" />
+                    <mx:Label x="310" y="156" text="Credit Report:"
+                              fontWeight="bold" width="94" textAlign="right" />
+                    <mx:DataGrid x="63" y="251" width="505"
+                                 id="dgHistory" includeInLayout="false">
+                        <mx:columns>
+                            <mx:DataGridColumn headerText="Type" dataField="TRANS_TYPE" textAlign="center" width="45" />
+                            <mx:DataGridColumn headerText="Date" dataField="PDATE" textAlign="center" width="110" />
+                            <mx:DataGridColumn headerText="Message" dataField="MESSAGE" textAlign="center" />
+                            <mx:DataGridColumn headerText="Balance" dataField="AMOUNT" labelFunction="dataGridCurrencyFormat"
+                                               textAlign="right" width="65" />
+                            <mx:DataGridColumn headerText="Auth Code" dataField="AUTH_CODE" textAlign="right" width="75" />
+                        </mx:columns>
+                    </mx:DataGrid>
+                    <mx:DataGrid x="63" y="251" width="505"
+                                 id="dgReview" visible="false" doubleClickEnabled="true"
+                                 doubleClick="selectRecord()" click="showRecord()">
+                        <mx:columns>
+                            <mx:DataGridColumn headerText="ID" dataField="CLIENTID" textAlign="right" width="45" />
+                            <mx:DataGridColumn headerText="First" dataField="FNAME" textAlign="left" width="110" />
+                            <mx:DataGridColumn headerText="Last" dataField="LNAME" textAlign="left" />
+                            <mx:DataGridColumn headerText="SSN" dataField="SSN" textAlign="center" />
+                            <mx:DataGridColumn headerText="Email" dataField="EMAIL" textAlign="right" width="100" />
+                        </mx:columns>
+                    </mx:DataGrid>
+                    <mx:Label x="63" y="219" text="Payment History"
+                              width="505" fontWeight="bold" textAlign="center"
+                              fontSize="12" id="labGrid" />
+                    <mx:HRule y="211" left="5" right="5" />
+                    <mx:HRule y="1" height="10" left="5" right="5" />
+                    <mx:HRule y="21" height="10" left="5" right="5" />
+                    <mx:VRule x="294" y="4" width="8" height="210" />
+                    <mx:Label x="10" y="7" text="Details"
+                              width="276" fontWeight="bold" textAlign="center"
+                              fontSize="12" />
+                    <mx:Label x="310" y="7" text="Billing Summary"
+                              width="276" fontWeight="bold" textAlign="center"
+                              fontSize="12" />
+                    <mx:Button x="89" y="221" label="Print History"
+                               id="btnPrintHistory" click="printHistory()" />
+                </mx:Canvas>
+                <mx:Canvas label="Demographic" width="100%" height="100%" id="cnv_demographic">
+                    <mx:Label x="106" y="10" text="First Name"
+                              width="160" textAlign="center" fontWeight="bold" />
+                    <mx:Label x="274" y="10" text="Last Name"
+                              width="160" textAlign="center" fontWeight="bold" />
+                    <mx:Label x="0" y="56" text="Address"
+                              width="98" textAlign="right" fontWeight="bold" />
+                    <mx:Label x="0" y="83" text="Suite / Apt"
+                              width="98" textAlign="right" fontWeight="bold" />
+                    <mx:Label x="106" y="110" text="City"
+                              width="160" textAlign="center" fontWeight="bold" />
+                    <mx:Label x="274" y="110" text="State"
+                              width="160" textAlign="center" fontWeight="bold" />
+                    <mx:Label x="449" y="110" text="Zip Code"
+                              width="100" textAlign="center" fontWeight="bold" />
+                    <mx:Label x="106" y="154" text="Phone"
+                              width="160" textAlign="center" fontWeight="bold" />
+                    <mx:Label x="286" y="154" text="Alt Phone"
+                              width="160" textAlign="center" fontWeight="bold" />
+                    <mx:Label x="0" y="195" text="Email"
+                              width="98" textAlign="right" fontWeight="bold" />
+                    <mx:Label x="0" y="222" text="SSN"
+                              width="98" textAlign="right" fontWeight="bold" />
+                    <mx:Label x="0" y="250" text="Source"
+                              width="98" textAlign="right" fontWeight="bold" />
+                    <mx:Label x="0" y="276" text="Date of Birth"
+                              width="98" textAlign="right" fontWeight="bold" />
+                    <mx:Label x="0" y="303" text="Status"
+                              width="98" textAlign="right" fontWeight="bold" />
+                    <ace:ValidatedTextInput x="107" y="29" id="FNAME"
+                                            minDataChars="1" upper="true" maxDataChars="25" />
+                    <ace:ValidatedTextInput x="274" y="29" id="LNAME"
+                                            minDataChars="1" upper="true" maxDataChars="25" />
+                    <ace:ValidatedTextInput x="106" y="56" width="328"
+                                            id="ADDRESS" minDataChars="1" maxDataChars="50" />
+                    <ace:ValidatedTextInput x="106" y="83" id="ADDRESS2" maxDataChars="50" />
+                    <ace:ValidatedTextInput x="106" y="127" id="CITY"
+                                            minDataChars="1" maxDataChars="50" />
+                    <ace:ValidatedComboBox x="286" y="127" id="STATE"
+                                           labelField="LABEL" dataField="DATA" badIndexes="0" />
+                    <ace:ValidatedTextInput x="449" y="127" width="100"
+                                            id="ZIP" minDataChars="1" maxDataChars="5"
+                                            dataType="alphaNumeric" />
+                    <ace:ValidatedTextInput x="106" y="168" id="PHONE"
+                                            formatter="_phoneFormat" dataType="number" maxDataChars="10" />
+                    <ace:ValidatedTextInput x="286" y="168" id="PHONE2"
+                                            formatter="_phoneFormat" dataType="number" maxDataChars="10" />
+                    <ace:ValidatedTextInput x="106" y="195" id="EMAIL"
+                                            width="340" dataType="email" maxDataChars="50"
+                                            lower="true" charactersAlsoPermitted="_,-,!" />
+                    <ace:ValidatedTextInput x="106" y="222" id="SSN"
+                                            minDataChars="1" maxDataChars="9" formatter="_ssnFormat"
+                                            dataType="number" />
+                    <ace:ValidatedComboBox x="106" y="249" dataProvider="{acReferral}"
+                                           id="SOURCE" width="160" />
+                    <ace:ValidatedDateField x="106" y="276" id="DOB"
+                                            width="96" editable="true" />
+                    <ace:ValidatedComboBox x="106" y="306" id="ACTIVE"
+                                           labelField="LABEL" dataField="DATA" />
+                    <mx:Button x="274" y="385" label="Save"
+                               id="btnClientSave" click="saveClientRecord()" icon="@Embed(source='assets/Save.png')" />
+                </mx:Canvas>
+                <mx:Canvas label="Billing" width="100%" height="100%"
+                           id="cnv_billing" show="enableFields()">
+                    <mx:Label x="0" y="31" text="Full Name"
+                              width="98" textAlign="right" fontWeight="bold" />
+                    <mx:Label x="0" y="56" text="Address"
+                              width="98" textAlign="right" fontWeight="bold" />
+                    <mx:Label x="0" y="83" text="Suite / Apt"
+                              width="98" textAlign="right" fontWeight="bold" />
+                    <mx:Label x="0" y="113" text="City/State/Zip"
+                              width="98" textAlign="right" fontWeight="bold" />
+                    <ace:ValidatedTextInput x="106" y="29" width="328"
+                                            id="B_NAME" maxDataChars="50" minDataChars="1" />
+                    <ace:ValidatedTextInput x="106" y="56" width="328"
+                                            id="B_ADDRESS" maxDataChars="50" minDataChars="1" />
+                    <ace:ValidatedTextInput x="106" y="83" id="B_ADDRESS2"
+                                            maxDataChars="50" minDataChars="0" />
+                    <ace:ValidatedTextInput x="106" y="111" id="B_CITY"
+                                            maxDataChars="50" minDataChars="1" />
+                    <ace:ValidatedComboBox x="274" y="111" width="160"
+                                           id="B_STATE" labelField="LABEL" dataField="DATA"
+                                           badIndexes="0" />
+                    <ace:ValidatedTextInput x="481" y="111" width="82"
+                                            id="B_ZIP" maxDataChars="5" minDataChars="1"
+                                            dataType="alphaNumeric" />
+                    <ace:ValidatedComboBox x="13" y="214" width="150"
+                                           id="B_PAYTYPE" labelField="LABEL" dataField="DATA"
+                                           close="payTypeChanged(event);" />
+                    <mx:Label x="0" y="3" text="Billing Address Information"
+                              width="100%" textAlign="center" fontWeight="bold"
+                              fontSize="14" />
+                    <mx:Label x="0" y="159" text="Payment Information"
+                              width="100%" textAlign="center" fontWeight="bold"
+                              fontSize="14" />
+                    <mx:Label x="30" y="279" text="Financial &amp; Misc"
+                              width="150" textAlign="left" fontWeight="bold"
+                              fontSize="12" />
+                    <mx:Label x="13" y="189" text="Payment Type"
+                              width="150" textAlign="center" fontWeight="bold"
+                              fontSize="12" />
+                    <mx:Label x="381" y="279" text="Banking Information"
+                              width="182" textAlign="center" fontWeight="bold"
+                              fontSize="12" />
+                    <mx:Label x="381" y="189" text="Credit Card Information"
+                              width="182" textAlign="center" fontWeight="bold"
+                              fontSize="12" />
+                    <ace:ValidatedTextInput x="87" y="304" width="76"
+                                            id="START_FEE" formatter="_usdFormat" maxValue="399.00"
+                                            dataType="number" precision="2" />
+                    <ace:ValidatedTextInput x="87" y="330" width="76"
+                                            id="B_BILLING_AMOUNT" dataType="number" maxValue="399.00"
+                                            formatter="_usdFormat" precision="2" />
+                    <mx:Label x="0" y="306" text="Start Fee"
+                              width="84" fontWeight="bold" textAlign="right" />
+                    <mx:Label x="0" y="360" text="Agent"
+                              width="84" fontWeight="bold" textAlign="right" />
+                    <mx:Label x="0" y="332" text="Monthly Fee"
+                              width="84" fontWeight="bold" textAlign="right" />
+                    <ace:ValidatedComboBox x="87" y="358" id="B_AGENTID"
+                                           dataProvider="{acAgents}" width="144" labelField="LABEL"
+                                           dataField="DATA" />
+                    <mx:Label x="274" y="216" text="Cardnumber"
+                              width="99" fontWeight="bold" textAlign="right" />
+                    <mx:Label x="274" y="304" text="Bank Name"
+                              width="99" fontWeight="bold" textAlign="right" />
+                    <mx:Label x="274" y="332" text="Account #"
+                              width="99" fontWeight="bold" textAlign="right" />
+                    <mx:Label x="274" y="360" text="Routing #"
+                              width="99" fontWeight="bold" textAlign="right" />
+                    <mx:Label x="274" y="245" text="Expiry (MMYY)"
+                              width="99" fontWeight="bold" textAlign="right" />
+                    <mx:Label x="455" y="245" text="CVV"
+                              width="41" fontWeight="bold" textAlign="right" />
+                    <ace:ValidatedTextInput x="381" y="214" id="B_ECARDNUMBER" />
+                    <ace:ValidatedTextInput x="381" y="241" width="63"
+                                            maxChars="4" id="B_EXPIRATION" dataType="string"
+                                            restrict="0-9" />
+                    <ace:ValidatedTextInput x="500" y="241" width="63"
+                                            maxChars="4" id="B_SECURITY_CODE" dataType="string"
+                                            restrict="0-9" />
+                    <ace:ValidatedTextInput x="381" y="304" id="B_BANK_NAME"
+                                            maxDataChars="50" enabled="false" />
+                    <ace:ValidatedTextInput x="381" y="330" maxChars="20"
+                                            id="B_ACCOUNT_NUMBER" maxDataChars="30" enabled="false"
+                                            dataType="number" />
+                    <ace:ValidatedTextInput x="381" y="358" maxChars="9"
+                                            id="B_ROUTING_NUMBER" maxDataChars="9" enabled="false"
+                                            dataType="number" />
+                    <mx:HRule y="149" left="5" right="5" />
+                    <mx:Button y="387" label="Save Record" id="btnBillingSave"
+                               click="saveBillingRecord()" horizontalCenter="-88" icon="@Embed(source='assets/Save.png')" />
+                    <mx:Button y="386" label="Print Details" id="btnPrintData"
+                               click="PrintClientData()" horizontalCenter="48" icon="@Embed(source='assets/Print.png')" />
+                </mx:Canvas>
+                <mx:Canvas label="Notes" width="100%" height="100%"
+                           show="loadClientNotes()" id="cnv_notes">
+                    <mx:DataGrid y="51" width="529" height="232"
+                                 horizontalCenter="0" id="dgNotes" wordWrap="true"
+                                 variableRowHeight="true" doubleClick="openNotesWindow(dgNotes.selectedIndex)" doubleClickEnabled="true">
+                        <mx:columns>
+                            <mx:DataGridColumn headerText="Date" dataField="PDATE" width="75" />
+                            <mx:DataGridColumn headerText="Time" dataField="PTIME" width="45" />
+                            <mx:DataGridColumn headerText="Comments" dataField="TEXT" wordWrap="true" />
+                            <mx:DataGridColumn headerText="User" dataField="USERID" width="75" />
+                        </mx:columns>
+                    </mx:DataGrid>
+                    <mx:Label y="25" text="Client Notes" width="529"
+                              textAlign="center" fontSize="12" fontStyle="normal"
+                              fontWeight="bold" horizontalCenter="0" />
+                    <mx:Button x="262" y="339" label="Add Note"
+                               click="openNotesWindow(-9)" id="btnAddNote" icon="@Embed(source='assets/Add.png')" />
+                </mx:Canvas>
+            </mx:TabNavigator>
+        </zet:MDIWindow>
+    </zet:MDI>
+</mx:Application>
