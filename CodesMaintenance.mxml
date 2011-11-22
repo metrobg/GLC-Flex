@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<MDIWindow xmlns="org.openzet.containers.*" xmlns:mx="http://www.adobe.com/2006/mxml" width="642" height="368"
+           xmlns:ns1="myComponents.*" title="Adjustment Code Listing" layout="absolute">
+    <mx:Script source="CodesACD.as" />
+    <mx:HTTPService id="getCodes" url="https://www.goodlifecredit.com/flex/queries/getCodes.cfm" useProxy="false" showBusyCursor="true"
+                    result="getResultOk(1,event)">
+        <mx:request>
+            <random>{random}</random>
+        </mx:request>
+    </mx:HTTPService>
+    <mx:HTTPService id="addCode" url="https://www.goodlifecredit.com/flex/queries/updateCodes.cfm" useProxy="false" showBusyCursor="true"
+                    method="POST" result="getResultOk(3,event)">
+        <mx:request>
+            <mode>{mode}</mode>
+            <id>{resultGrid.selectedItem.id}</id>
+            <description>{description_fld.text}</description>
+            <position>{position_ns.value}</position>
+            <random>{random}</random>
+        </mx:request>
+    </mx:HTTPService>
+    <mx:HTTPService id="deleteCode" url="https://www.goodlifecredit.com/flex/queries/updateCodes.cfm" useProxy="false" showBusyCursor="true"
+                    method="POST" result="getResultOk(4,event)" fault="getResultOk(999,event)">
+        <mx:request>
+            <mode>{mode}</mode>
+            <id>{resultGrid.selectedItem.id}</id>
+            <random>{random}</random>
+        </mx:request>
+    </mx:HTTPService>
+    <mx:HTTPService id="updateCode" url="https://www.goodlifecredit.com/flex/queries/updateCodes.cfm" useProxy="false" showBusyCursor="true"
+                    method="POST" result="getResultOk(2,event)" fault="getResultOk(999,event)">
+        <mx:request>
+            <mode>{mode}</mode>
+            <id>{resultGrid.selectedItem.id}</id>
+            <description>{description_fld.text}</description>
+            <position>{position_ns.value}</position>
+            <random>{random}</random>
+        </mx:request>
+    </mx:HTTPService>
+    <mx:NumberFormatter precision="2" id="nf" />
+    <mx:CurrencyFormatter id="cf" precision="2" />
+    <mx:DataGrid width="352" id="resultGrid" itemClick="gridItemSelected(event);" visible="true"
+                 height="275" x="13" y="13">
+        <mx:columns>
+            <mx:DataGridColumn headerText="ID" dataField="id" visible="false" width="45" />
+            <mx:DataGridColumn headerText="Position" dataField="position" width="25" />
+            <mx:DataGridColumn headerText="Description" dataField="description" width="75" />
+        </mx:columns>
+    </mx:DataGrid>
+    <mx:Form width="230" height="129" id="form1" x="381"
+             y="10">
+        <mx:FormItem label="Description" required="true">
+        </mx:FormItem>
+        <mx:FormItem label="Position" id="position_fld">
+            <mx:NumericStepper minimum="1" maximum="99" stepSize="1" id="position_ns"
+                               value="{resultGrid.selectedItem.position}" />
+        </mx:FormItem>
+        <mx:TextInput id="description_fld" maxChars="30" text="{resultGrid.selectedItem.description}" width="131" />
+    </mx:Form>
+    <mx:Text x="62" y="251" text="{resultGrid.selectedItem.id}" width="91"
+             id="id_fld" visible="false" />
+    <mx:Button x="381" y="147" label="Save" id="save_btn"
+               icon="{Images.saveIcon}" click="buttonHandler('{mode}')" toolTip="Click here to Save this Record" useHandCursor="true"
+               buttonMode="true" />
+    <mx:Button x="470" y="147" label="Delete" id="delete_btn"
+               icon="{Images.removeIcon}" click="buttonHandler('delete')" toolTip="Click here to Delete this Record" useHandCursor="true"
+               buttonMode="true" />
+    <!--M A I N   D A T A   V I E W -->
+    <!--A D D  /  E D I T   P A N E L -->
+    <mx:Button x="56" y="298" label="Load" id="load_btn"
+               click="makeRandom(getCodes)" icon="{Images.listIcon}" useHandCursor="true" buttonMode="true"
+               toolTip="Click here to List All Codes" />
+    <mx:Button label="Close" id="close_btn" icon="{Images.closeIcon}" click="parentApplication.closeModule(this.owner.name)"
+               x="141" y="298" />
+    <mx:Button x="229" y="298" label="Add" id="add_btn"
+               toolTip="Click here to add a new Code" click="addRecord();" useHandCursor="true" buttonMode="true"
+               icon="{Images.addIcon}" />
+</MDIWindow>
