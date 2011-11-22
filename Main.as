@@ -189,6 +189,8 @@ private var userEditor:UserEditor;
 
 private var leadEditor:LeadsEditor;
 
+private var codesEditor:CodesMaintenance;
+
 private var adjustmentWindow:AdjustmentWindow;
 
 private var processingWindow:ProcessingWindow;
@@ -600,6 +602,18 @@ private function addLeadsWindow():void
     leadEditor.showCloseButton = true;
     leadEditor.name = "leadEditor";
     aryWindows.push(leadEditor);
+}
+
+private function addCodesWindow():void
+{
+    codesEditor = new CodesMaintenance();
+    mdi.addChild(codesEditor);
+    codesEditor.setSize(700, 470);
+    codesEditor.showMaxButton = false;
+    codesEditor.resizable = false;
+    codesEditor.showCloseButton = true;
+    codesEditor.name = "codeEditor";
+    aryWindows.push(codesEditor);
 }
 
 private function collectPayment():void
@@ -1099,7 +1113,7 @@ public function menuItemSelected(event:MenuEvent):void
             addLeadsWindow();
             break;
         case 15:
-            addLeadsWindow();
+            addCodesWindow();
             break;
         case 22:
             if ((client != null) && (client.CLIENTID > 0))
