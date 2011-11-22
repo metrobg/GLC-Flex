@@ -3,7 +3,7 @@
            xmlns:local="*" creationComplete="init()" width="700" height="410"
            title="Add / Edit Users" layout="absolute">
     <mx:Script source="UsersACD.as" />
-    <mx:RemoteObject id="gateway" destination="ColdFusion" source="com.idavenger.UsersGateway" result="onServiceDataReady(event)"
+    <mx:RemoteObject id="gateway" destination="ColdFusion" source="com.goodlife.UsersGateway" result="onServiceDataReady(event)"
                      showBusyCursor="true" fault="onServiceFault(event)">
         <mx:method name="getUserById" />
         <mx:method name="saveUser" />
