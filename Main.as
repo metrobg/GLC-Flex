@@ -137,6 +137,8 @@
    1.6.6	1/18/2011	 added additional permitted characters to the email text input
    1.6.7   1/21/2011 formatted the client ssn for use in the GLCClientDetail Report
    1.6.8	10/26/2011 modified the add client routine so that security level 7 and above have access to the function
+   1.6.12	04/27/12 Added new transaction code X "client cancel" to the adjustment window
+   1.6.13	05/03/12  Added additional status codes to combobox. P = POA Pending O = Opt Out
  */
 import com.ace.DBTools;
 import com.ace.Input.Utilities;
@@ -240,7 +242,7 @@ public var newClient:Boolean = false;
 
 private var firstTimeInit:Boolean = false;
 
-public var version:String = "1.6.12";
+public var version:String = "1.6.13";
 
 public function init():void
 {
@@ -264,11 +266,16 @@ public function init():void
     changeCSS("Styles/PlainStyles/GMSBlue.swf")
     if (!firstTimeInit)
     {
-        firstTimeInit = true;
+        firstTimeInit = true; 
         addLoginWindow();
     }
     dbTools = new DBTools();
-    ACTIVE.dataProvider = new ArrayCollection([{ DATA: "Y", LABEL: "Active" }, { DATA: "N", LABEL: "Inactive" }]);
+     ACTIVE.dataProvider = new ArrayCollection([{ DATA: "Y", LABEL: "Active" }, 
+    										   { DATA: "N", LABEL: "Inactive" },
+    										   { DATA: "O", LABEL: "Opt Out" },
+    										   { DATA: "P", LABEL: "POA Pending" },
+    										   { DATA: "", LABEL: "Unknown" }   								   
+    										   ]); 		
     B_PAYTYPE.dataProvider = new ArrayCollection([{ DATA: "cc", LABEL: "Credit Card" }, { DATA: "ba", LABEL: "Banking" }]);
     sc = new SecurityController(this);
 }
@@ -295,7 +302,12 @@ public function setupInit():void
     changeCSS("Styles/PlainStyles/GMSBlue.swf")
     //addLoginWindow();
     dbTools = new DBTools();
-    ACTIVE.dataProvider = new ArrayCollection([{ DATA: "Y", LABEL: "Active" }, { DATA: "N", LABEL: "Inactive" }]);
+     ACTIVE.dataProvider = new ArrayCollection([{ DATA: "Y", LABEL: "Active" }, 
+    										   { DATA: "N", LABEL: "Inactive" },
+    										   { DATA: "O", LABEL: "Opt Out" },
+    										   { DATA: "P", LABEL: "POA Pending" },
+    										   { DATA: "", LABEL: "Unknown" }   										   
+    										   ]); 
     B_PAYTYPE.dataProvider = new ArrayCollection([{ DATA: "cc", LABEL: "Credit Card" }, { DATA: "ba", LABEL: "Banking" }]);
     sc = new SecurityController(this);
 }
