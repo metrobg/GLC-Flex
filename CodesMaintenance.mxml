@@ -66,12 +66,12 @@
                buttonMode="true" />
     <!--M A I N   D A T A   V I E W -->
     <!--A D D  /  E D I T   P A N E L -->
-    <mx:Button x="56" y="298" label="Load" id="load_btn"
-               click="makeRandom(getCodes)" icon="{Images.listIcon}" useHandCursor="true" buttonMode="true"
-               toolTip="Click here to List All Codes" />
-    <mx:Button label="Close" id="close_btn" icon="{Images.closeIcon}" click="parentApplication.closeModule(this.owner.name)"
-               x="141" y="298" />
-    <mx:Button x="229" y="298" label="Add" id="add_btn"
-               toolTip="Click here to add a new Code" click="addRecord();" useHandCursor="true" buttonMode="true"
-               icon="{Images.addIcon}" />
+    <mx:HBox x="13" y="294" width="352" horizontalAlign="center">
+        <mx:Button label="Load" id="load_btn"
+                   click="makeRandom(getCodes)" icon="{Images.listIcon}" useHandCursor="true" buttonMode="true"
+                   toolTip="Click here to List All Codes" />
+        <mx:Button label="Add" id="add_btn"
+                   toolTip="Click here to add a new Code" click="addRecord();" useHandCursor="true" buttonMode="true"
+                   icon="{Images.addIcon}" />
+    </mx:HBox>
 </MDIWindow>
