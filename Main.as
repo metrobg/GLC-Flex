@@ -242,7 +242,7 @@ public var newClient:Boolean = false;
 
 private var firstTimeInit:Boolean = false;
 
-public var version:String = "1.6.13";
+public var version:String = "1.6.14";
 
 public function init():void
 {
