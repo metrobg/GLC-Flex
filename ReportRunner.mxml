@@ -15,8 +15,8 @@
             public var defaultReportDates:String;
 
             private var today:Date = new Date();
-
-            private var PDFBase:String = "http://dbase.metrobg.com/GLC/";
+          // http://milo.metrobg.com/HMI/ReportRunner?template=GLC/GLC1200Report&FROM=16-APR-12&TO=4-MAY-12&output=PDF
+            private var PDFBase:String = "http://dbase.metrobg.com/HMI/";
 
             private var reportArray:Array;
 
@@ -64,16 +64,38 @@
                 pageBreaks = "N";
                 reportType = "A";
             }
-
             private function runReport(val:Number):void
             {
-                var fdate:Date = new Date(fromDate_df.text);
+                if(val != 16)
+                {
+                    var fdate:Date = new Date(fromDate_df.text);
+                    var tdate:Date = new Date(toDate_df.text);
+                    //var variables:URLVariables = new URLVariables();
+                    var state:String = '';
+                    variables.from = df.format(fdate).toUpperCase();
+                    variables.to = df.format(tdate).toUpperCase();
+                    PDFBase = report_cb.selectedItem.url;
+                    var request:URLRequest = new URLRequest(PDFBase);
+                    request.method = "POST";
+                    request.data = variables;
+                    navigateToURL(request);
+                }
+                else
+                {
+                    runJasperReport();
+                }
+            }
+
+            private function runJasperReport():void
+            {
+            	var fdate:Date = new Date(fromDate_df.text);
                 var tdate:Date = new Date(toDate_df.text);
-                //var variables:URLVariables = new URLVariables();
-                var state:String = '';
-                variables.from = df.format(fdate).toUpperCase();
-                variables.to = df.format(tdate).toUpperCase();
+                var urlParts:Array;
                 PDFBase = report_cb.selectedItem.url;
+                 
+                variables.output = "PDF";
+                variables.FROM = df.format(fdate).toUpperCase();
+                variables.TO = df.format(tdate).toUpperCase();
                 var request:URLRequest = new URLRequest(PDFBase);
                 request.method = "POST";
                 request.data = variables;
