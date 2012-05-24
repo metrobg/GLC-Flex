@@ -138,7 +138,9 @@
    1.6.7   1/21/2011 formatted the client ssn for use in the GLCClientDetail Report
    1.6.8	10/26/2011 modified the add client routine so that security level 7 and above have access to the function
    1.6.12	04/27/12 Added new transaction code X "client cancel" to the adjustment window
-   1.6.13	05/03/12  Added additional status codes to combobox. P = POA Pending O = Opt Out
+   1.6.14	05/03/12  Added additional status codes to combobox. P = POA Pending O = Opt Out
+   1.6.15   05/23/12  modified the makeClientRecord function so that the status label is set as soon as the
+   			client record is read from the backend instead of when we set the agent.
  */
 import com.ace.DBTools;
 import com.ace.Input.Utilities;
@@ -242,7 +244,7 @@ public var newClient:Boolean = false;
 
 private var firstTimeInit:Boolean = false;
 
-public var version:String = "1.6.14";
+public var version:String = "1.6.15";
 
 public function init():void
 {
@@ -271,10 +273,10 @@ public function init():void
     }
     dbTools = new DBTools();
      ACTIVE.dataProvider = new ArrayCollection([{ DATA: "Y", LABEL: "Active" }, 
-    										   { DATA: "N", LABEL: "Inactive" },
-    										   { DATA: "O", LABEL: "Opt Out" },
-    										   { DATA: "P", LABEL: "POA Pending" },
-    										   { DATA: "", LABEL: "Unknown" }   								   
+    										    { DATA: "N", LABEL: "Inactive" },
+    										    { DATA: "O", LABEL: "Opt Out" },
+    										    { DATA: "P", LABEL: "POA Pending" },
+    										    { DATA: "",  LABEL: "Unknown" }   								   
     										   ]); 		
     B_PAYTYPE.dataProvider = new ArrayCollection([{ DATA: "cc", LABEL: "Credit Card" }, { DATA: "ba", LABEL: "Banking" }]);
     sc = new SecurityController(this);
@@ -787,7 +789,7 @@ private function setAgent():void
 {
     clientRep.text = B_AGENTID.selectedItem.LABEL;
     clientSTATUS.text = String(client.CLIENTID);
-    lblSTATUS.text = ACTIVE.selectedLabel;
+    //lblSTATUS.text = ACTIVE.selectedLabel;
     //ClientWindow.status = "user: " + txtUSERID;
     setReferrer();
 }
@@ -1052,6 +1054,22 @@ private function makeClientRecord(vclient:CLIENT):void
     clientSignup.text = df.format(client.DATE_ENTERED);
     dbTools.loadFieldData(acClientWrapper, 0, cnv_demographic, "");
     enableTabs();
+    switch (client.ACTIVE) {
+    	case "Y":
+    	   lblSTATUS.text = "Active";
+    	   break;
+    	case "N":
+    	    lblSTATUS.text = "Inactive";
+    	    break;
+    	case "P":
+    	     lblSTATUS.text = "POA Pending";
+    	     break;
+		case "O":
+    	     lblSTATUS.text = "Opt Out";
+    	     break;
+    	default:
+    	       lblSTATUS.text = "Unknown";
+    }
 }
 
 private function makeBillingRecord(vbilling:BILLING):void
