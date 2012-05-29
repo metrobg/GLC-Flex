@@ -141,6 +141,8 @@
    1.6.14	05/03/12  Added additional status codes to combobox. P = POA Pending O = Opt Out
    1.6.15   05/23/12  modified the makeClientRecord function so that the status label is set as soon as the
    			client record is read from the backend instead of when we set the agent.
+   1.6.16   05/29/12 Modified credit report received date input component of the adjustiment window.
+   			Allowed the selectable date to go back 45 days instead of the currently defined 10 days.
  */
 import com.ace.DBTools;
 import com.ace.Input.Utilities;
@@ -244,7 +246,7 @@ public var newClient:Boolean = false;
 
 private var firstTimeInit:Boolean = false;
 
-public var version:String = "1.6.15";
+public var version:String = "1.6.16";
 
 public function init():void
 {
