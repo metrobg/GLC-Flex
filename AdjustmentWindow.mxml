@@ -45,7 +45,7 @@ public function doInit():void {
 	
 	/* set parameters for the adjustment dates */
 	AdjRange.rangeEnd = new Date(DateUtilities.addTo(today,0,0,10));
-	AdjRange.rangeStart = new Date(DateUtilities.addTo(today,0,0,-10));
+	AdjRange.rangeStart = new Date(DateUtilities.addTo(today,0,0,-45));
 	adjustment_df.selectableRange = AdjRange;
 	
 	 

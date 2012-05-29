@@ -143,6 +143,8 @@
    			client record is read from the backend instead of when we set the agent.
    1.6.16   05/29/12 Modified credit report received date input component of the adjustiment window.
    			Allowed the selectable date to go back 45 days instead of the currently defined 10 days.
+   1.6.17   Modified the Adjustment date to follow the credit report rvcd date, can now go back 45 days
+   			and ahead 10 days when selecting the adjustment date.
  */
 import com.ace.DBTools;
 import com.ace.Input.Utilities;
@@ -246,7 +248,7 @@ public var newClient:Boolean = false;
 
 private var firstTimeInit:Boolean = false;
 
-public var version:String = "1.6.16";
+public var version:String = "1.6.17";
 
 public function init():void
 {
