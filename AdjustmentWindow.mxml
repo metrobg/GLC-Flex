@@ -40,7 +40,7 @@ public function doInit():void {
 	
     today = new Date;
 	ReportRange.rangeEnd = today;
-	ReportRange.rangeStart = new Date(DateUtilities.addTo(ReportRange.rangeEnd,0,0,-10));
+	ReportRange.rangeStart = new Date(DateUtilities.addTo(ReportRange.rangeEnd,0,0,-45));
 	report_df.selectableRange = ReportRange;
 	
 	/* set parameters for the adjustment dates */
