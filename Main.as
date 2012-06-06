@@ -145,6 +145,14 @@
    			Allowed the selectable date to go back 45 days instead of the currently defined 10 days.
    1.6.17   Modified the Adjustment date to follow the credit report rvcd date, can now go back 45 days
    			and ahead 10 days when selecting the adjustment date.
+   1.7.1	06/02/12 Added a new module (Source Company) based on the DB source table. this table will
+   			allow the admin to associate a sales rep with a company which will then be available via
+   			the company code to the respective web page. No the sales reps displayed on the website can
+   			be controlled via admin.
+   1.7.4    6/5/12 added the affiliate input field to the demographic tab, modified the client class as well as the
+   			necessary DAO cfc's. Also modified the sales rep module so that the company identifier can be aasociated with
+   			the rep. This will aid in the select list on the website.
+   1.7.6		6/6/12 Added password window that will display the decrypted credit card info upon successful entry of the code
  */
 import com.ace.DBTools;
 import com.ace.Input.Utilities;
@@ -154,7 +162,9 @@ import com.goodlife.Events.LoginCompleteEvent;
 import com.metrobg.Classes.ReportItem;
 import com.metrobg.Classes.SecurityController;
 import com.metrobg.Icons.Images;
+
 import flash.net.navigateToURL;
+
 import mx.collections.ArrayCollection;
 import mx.controls.Alert;
 import mx.core.Application;
@@ -162,8 +172,10 @@ import mx.events.CloseEvent;
 import mx.events.ItemClickEvent;
 import mx.events.MenuEvent;
 import mx.managers.CursorManager;
+import mx.managers.PopUpManager;
 import mx.rpc.events.*;
 import mx.styles.StyleManager;
+
 import org.openzet.containers.MDIWindow;
 import org.openzet.containers.MDIWindowState;
 import org.openzet.events.MDIWindowEvent;
@@ -198,6 +210,8 @@ private var userEditor:UserEditor;
 private var leadEditor:LeadsEditor;
 
 private var codesEditor:CodesMaintenance;
+
+private var agencyEditor:SourceEditor;
 
 private var adjustmentWindow:AdjustmentWindow;
 
@@ -235,6 +249,7 @@ private var _strCurrentStyle:String = "";
 private var searchAC:ArrayCollection;
 
 private var acAdjustmentCodes:ArrayCollection;
+public var acAgencies:ArrayCollection;
 
 private var searchArray:Array = new Array('Search History');
 
@@ -248,7 +263,12 @@ public var newClient:Boolean = false;
 
 private var firstTimeInit:Boolean = false;
 
-public var version:String = "1.6.17";
+public var password:String = 'blowfish';
+private var passwordWindow:PasswordWindow;
+[Bindable]
+private var cleartextcard:String = '';
+
+public var version:String = "1.7.7";
 
 public function init():void
 {
@@ -266,6 +286,7 @@ public function init():void
     service.getAgents();
     service.getStates();
     service.getAdjustmentCodes();
+    service.getAgencies();
     appMenu.dataProvider = dp2;
     appMenu.labelField = "@label"
     appMenu.addEventListener("itemClick", menuItemSelected);
@@ -633,7 +654,17 @@ private function addCodesWindow():void
     codesEditor.name = "codeEditor";
     aryWindows.push(codesEditor);
 }
-
+private function addAgencyWindow():void
+{
+    agencyEditor = new SourceEditor();
+    mdi.addChild(agencyEditor);
+    agencyEditor.setSize(700, 470);
+    agencyEditor.showMaxButton = false;
+    agencyEditor.resizable = false;
+    agencyEditor.showCloseButton = true;
+    agencyEditor.name = "agencyEditor";
+    aryWindows.push(agencyEditor);
+}
 private function collectPayment():void
 {
     if (client == null || client.CLIENTID == 0)
@@ -810,6 +841,7 @@ private function updateSearchField():void
 public function onServiceDataReady(event:ResultEvent):void
 {
     var act:Object = event.token;
+    cleartextcard = '';
     switch (act.message.operation)
     {
         case "getClientById":
@@ -920,6 +952,13 @@ public function onServiceDataReady(event:ResultEvent):void
                 acAdjustmentCodes = event.result as ArrayCollection;
             }
             break;
+         case "getAgencies":
+            if (event.result.length > 0)
+            {
+                acAgencies = event.result as ArrayCollection;
+                acAgencies.addItemAt({LABEL: "Select",  DATA: ""},0);
+            }
+            break;
         case "setCardAttempts":
             if (act.result.status == "1")
             {
@@ -996,6 +1035,17 @@ public function onServiceDataReady(event:ResultEvent):void
             else
             {
                 Alert.show("Problem removing record", "Failed");
+            }
+            break;
+        case "decodeCard":
+         if (act.result.status == "1")
+            {
+            	var tmp:String = act.result.card;              
+                    cleartextcard = tmp.substr(0, 4) + '-' + tmp.substr(4, 4) + '-' + tmp.substr(8, 4) + '-' + tmp.substr(12, 4);               
+            }
+            else
+            {
+                Alert.show("Problem Decoding Credit Card", "Error");
             }
             break;
         case "getClientByName":
@@ -1145,6 +1195,9 @@ public function menuItemSelected(event:MenuEvent):void
             break;
         case 13:
             addLeadsWindow();
+            break;
+         case 14:
+            addAgencyWindow();
             break;
         case 15:
             addCodesWindow();
@@ -1435,6 +1488,7 @@ private function loadClientNotes():void
 private function clearFields():void
 {
     currentClient = 0;
+    cleartextcard = '';
     clientName.text = "";
     clientAddress.text = "";
     clientAddress2.text = "";
@@ -1477,7 +1531,35 @@ private function printHistory():void
         request.data = variables;
         navigateToURL(request);
     }
-} /*
+} 
+
+private function showPasswordWindow():void
+{
+	if(B_ECARDNUMBER.length > 12) {
+    passwordWindow = PasswordWindow(PopUpManager.createPopUp(this, PasswordWindow, true));
+    passwordWindow.showCloseButton = true;
+    passwordWindow.addEventListener("close", closePasswordWindow);
+ }
+}
+
+public function closePasswordWindow(event:CloseEvent):void
+{
+    if (password == passwordWindow.password)
+    {
+        service.decodeCard(client.CLIENTID);
+        PopUpManager.removePopUp(passwordWindow);
+        passwordWindow = null;
+    }
+    else
+    {
+        Alert.show("Password did not match", "Failed");
+    }
+}
+
+
+
+
+/*
 
    public var employeeRO:RemoteObject;
 
