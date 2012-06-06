@@ -5,7 +5,7 @@ package com.goodlife
 	[Bindable]
 	public class CLIENT
 	{
-
+  
 		public var CLIENTID:Number = 0;
 		public var FNAME:String = "";
 		public var LNAME:String = "";
@@ -37,7 +37,7 @@ package com.goodlife
 		public var WELCOME_SENT_DATE:Date = null;
 		public var ESSN:String = "";
 		public var SITE:String = "";
-
+        public var SUBID:String = "";
 
 		public function CLIENT()
 		{
