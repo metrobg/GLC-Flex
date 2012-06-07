@@ -152,7 +152,7 @@
    1.7.4    6/5/12 added the affiliate input field to the demographic tab, modified the client class as well as the
    			necessary DAO cfc's. Also modified the sales rep module so that the company identifier can be aasociated with
    			the rep. This will aid in the select list on the website.
-   1.7.6		6/6/12 Added password window that will display the decrypted credit card info upon successful entry of the code
+   1.7.6	6/6/12 Added password window that will display the decrypted credit card info upon successful entry of the code
  */
 import com.ace.DBTools;
 import com.ace.Input.Utilities;
@@ -268,7 +268,7 @@ private var passwordWindow:PasswordWindow;
 [Bindable]
 private var cleartextcard:String = '';
 
-public var version:String = "1.7.7";
+public var version:String = "1.7.8.3";
 
 public function init():void
 {
