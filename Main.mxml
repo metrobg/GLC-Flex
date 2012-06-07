@@ -21,6 +21,8 @@
         <mx:method name="adjBalance" />
         <mx:method name="decodeCard" />
         <mx:method name="getReports" />
+        <mx:method name="getAgencies" />
+        
     </mx:RemoteObject>
     <mx:RemoteObject id="gateway" destination="ColdFusion" source="com.goodlife.GLCGateway"
                      result="onServiceDataReady(event)" showBusyCursor="true" fault="onServiceFault(event)">
@@ -175,9 +177,10 @@
             <item label="Modules" enabled="true" value="0" index="1">
                 <item label="New Client" enabled="true" value="0" index="16" />
                 <item label="Sales Reps" enabled="true" value="0" index="11" />
-                <item label="Users" enabled="true" value="UserEditor|userEditor" index="12" />
+                <item label="Admin Users" enabled="true" value="UserEditor|userEditor" index="12" />
                 <item label="Adj. Codes" enabled="true" value="0" index="15" />
                 <item label="Referral Codes" enabled="true" value="Leads|leadsEditor" index="13" />
+                <item label="Agency Codes" enabled="true" value="Agency Editor" index="14" />
             </item>
             <item label="Actions" enabled="true" value="0" index="2">
                 <item label="Send Welcome Pkt" enabled="true" value="SendWelcome" index="22" />
@@ -298,11 +301,11 @@
                     <mx:Label x="274" y="110" text="State"
                               width="160" textAlign="center" fontWeight="bold" />
                     <mx:Label x="449" y="110" text="Zip Code"
-                              width="100" textAlign="center" fontWeight="bold" />
+                              width="72" textAlign="center" fontWeight="bold" />
                     <mx:Label x="106" y="154" text="Phone"
-                              width="160" textAlign="center" fontWeight="bold" />
-                    <mx:Label x="286" y="154" text="Alt Phone"
-                              width="160" textAlign="center" fontWeight="bold" />
+                              width="116" textAlign="center" fontWeight="bold" />
+                    <mx:Label x="311" y="154" text="Alt Phone"
+                              width="116" textAlign="center" fontWeight="bold" />
                     <mx:Label x="0" y="195" text="Email"
                               width="98" textAlign="right" fontWeight="bold" />
                     <mx:Label x="0" y="222" text="SSN"
@@ -312,6 +315,8 @@
                     <mx:Label x="0" y="276" text="Date of Birth"
                               width="98" textAlign="right" fontWeight="bold" />
                     <mx:Label x="0" y="303" text="Status"
+                              width="98" textAlign="right" fontWeight="bold" />
+                    <mx:Label x="0" y="338" text="Affiliate"
                               width="98" textAlign="right" fontWeight="bold" />
                     <ace:ValidatedTextInput x="107" y="29" id="FNAME"
                                             minDataChars="1" upper="true" maxDataChars="25" />
@@ -324,13 +329,13 @@
                                             minDataChars="1" maxDataChars="50" />
                     <ace:ValidatedComboBox x="286" y="127" id="STATE"
                                            labelField="LABEL" dataField="DATA" badIndexes="0" />
-                    <ace:ValidatedTextInput x="449" y="127" width="100"
-                                            id="ZIP" minDataChars="1" maxDataChars="5"
+                    <ace:ValidatedTextInput x="449" y="127" width="72"
+                                            id="ZIP" minDataChars="5" maxDataChars="5"
                                             dataType="alphaNumeric" />
                     <ace:ValidatedTextInput x="106" y="168" id="PHONE"
-                                            formatter="_phoneFormat" dataType="number" maxDataChars="10" />
-                    <ace:ValidatedTextInput x="286" y="168" id="PHONE2"
-                                            formatter="_phoneFormat" dataType="number" maxDataChars="10" />
+                                            formatter="_phoneFormat" dataType="number" maxDataChars="10"  width="116"/>
+                    <ace:ValidatedTextInput x="311" y="168" id="PHONE2"
+                                            formatter="_phoneFormat" dataType="number" maxDataChars="10"  width="116"/>
                     <ace:ValidatedTextInput x="106" y="195" id="EMAIL"
                                             width="340" dataType="email" maxDataChars="50"
                                             lower="true" charactersAlsoPermitted="_,-,!" />
@@ -339,10 +344,12 @@
                                             dataType="number" />
                     <ace:ValidatedComboBox x="106" y="249" dataProvider="{acReferral}"
                                            id="SOURCE" width="160" />
-                    <ace:ValidatedDateField x="106" y="276" id="DOB"
+                    <ace:ValidatedDateField x="106" y="276" id="DOB" yearNavigationEnabled="true"
                                             width="96" editable="true" />
                     <ace:ValidatedComboBox x="106" y="306" id="ACTIVE"
                                            labelField="LABEL" dataField="DATA" />
+                    <ace:ValidatedTextInput x="106" y="336" width="82" id="SUBID" maxDataChars="8" upper="true"  dataType="string"
+                    							charactersAlsoPermitted="-,_," />
                     <mx:Button x="274" y="385" label="Save"
                                id="btnClientSave" click="saveClientRecord()" icon="@Embed(source='assets/Save.png')" />
                 </mx:Canvas>
@@ -370,7 +377,7 @@
                     <ace:ValidatedTextInput x="481" y="111" width="82"
                                             id="B_ZIP" maxDataChars="5" minDataChars="1"
                                             dataType="alphaNumeric" />
-                    <ace:ValidatedComboBox x="13" y="214" width="150"
+                    <ace:ValidatedComboBox x="13" y="200" width="150"
                                            id="B_PAYTYPE" labelField="LABEL" dataField="DATA"
                                            close="payTypeChanged(event);" />
                     <mx:Label x="0" y="3" text="Billing Address Information"
@@ -382,13 +389,13 @@
                     <mx:Label x="30" y="279" text="Financial &amp; Misc"
                               width="150" textAlign="left" fontWeight="bold"
                               fontSize="12" />
-                    <mx:Label x="13" y="189" text="Payment Type"
+                    <mx:Label x="13" y="179" text="Payment Type"
                               width="150" textAlign="center" fontWeight="bold"
                               fontSize="12" />
                     <mx:Label x="381" y="279" text="Banking Information"
                               width="182" textAlign="center" fontWeight="bold"
                               fontSize="12" />
-                    <mx:Label x="381" y="189" text="Credit Card Information"
+                    <mx:Label x="381" y="179" text="Credit Card Information"
                               width="182" textAlign="center" fontWeight="bold"
                               fontSize="12" />
                     <ace:ValidatedTextInput x="87" y="304" width="76"
@@ -406,8 +413,10 @@
                     <ace:ValidatedComboBox x="87" y="358" id="B_AGENTID"
                                            dataProvider="{acAgents}" width="144" labelField="LABEL"
                                            dataField="DATA" />
-                    <mx:Label x="274" y="216" text="Cardnumber"
+                    <mx:Label x="274" y="202" text="Cardnumber"
                               width="99" fontWeight="bold" textAlign="right" />
+                    <mx:Label x="381" y="221"
+                              width="160" fontWeight="bold" textAlign="center"  id="lblClearTextCard" text="{cleartextcard}"/>
                     <mx:Label x="274" y="304" text="Bank Name"
                               width="99" fontWeight="bold" textAlign="right" />
                     <mx:Label x="274" y="332" text="Account #"
@@ -416,28 +425,29 @@
                               width="99" fontWeight="bold" textAlign="right" />
                     <mx:Label x="274" y="245" text="Expiry (MMYY)"
                               width="99" fontWeight="bold" textAlign="right" />
-                    <mx:Label x="455" y="245" text="CVV"
+                    <mx:Label x="445" y="245" text="CVV"
                               width="41" fontWeight="bold" textAlign="right" />
-                    <ace:ValidatedTextInput x="381" y="214" id="B_ECARDNUMBER" />
+                    <ace:ValidatedTextInput x="381" y="200" id="B_ECARDNUMBER" />
                     <ace:ValidatedTextInput x="381" y="241" width="63"
                                             maxChars="4" id="B_EXPIRATION" dataType="string"
                                             restrict="0-9" />
-                    <ace:ValidatedTextInput x="500" y="241" width="63"
-                                            maxChars="4" id="B_SECURITY_CODE" dataType="string"
+                    <ace:ValidatedTextInput x="488" y="241" width="53"
+                                              maxDataChars="4" id="B_SECURITY_CODE" dataType="string"
                                             restrict="0-9" />
                     <ace:ValidatedTextInput x="381" y="304" id="B_BANK_NAME"
                                             maxDataChars="50" enabled="false" />
                     <ace:ValidatedTextInput x="381" y="330" maxChars="20"
                                             id="B_ACCOUNT_NUMBER" maxDataChars="30" enabled="false"
-                                            dataType="number" />
+                                             dataType="alphaNumeric" upper="true"  width="111"/>
                     <ace:ValidatedTextInput x="381" y="358" maxChars="9"
                                             id="B_ROUTING_NUMBER" maxDataChars="9" enabled="false"
-                                            dataType="number" />
+                                            dataType="number"  width="83"/>
                     <mx:HRule y="149" left="5" right="5" />
                     <mx:Button y="387" label="Save Record" id="btnBillingSave"
                                click="saveBillingRecord()" horizontalCenter="-88" icon="@Embed(source='assets/Save.png')" />
-                    <mx:Button y="386" label="Print Details" id="btnPrintData"
+                    <mx:Button y="386" label="Print Details" id="btnPrintData" 
                                click="PrintClientData()" horizontalCenter="48" icon="@Embed(source='assets/Print.png')" />
+                    <mx:Image x="549" y="241" source="{Images.previewIcon}" click="showPasswordWindow()" toolTip="Click here to view the Credit Card Number"/>
                 </mx:Canvas>
                 <mx:Canvas label="Notes" width="100%" height="100%"
                            show="loadClientNotes()" id="cnv_notes">
