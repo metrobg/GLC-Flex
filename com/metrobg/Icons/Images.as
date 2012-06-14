@@ -1,5 +1,5 @@
 package com.metrobg.Icons {
-
+ 
 	public class Images {
 
 		[Embed(source="/assets/Add.png")]
@@ -49,7 +49,10 @@ package com.metrobg.Icons {
 
 		[Embed(source="/assets/GLClogo.png")]
 		public static const logoIcon:Class;
-
+        
+        [Embed(source="/assets/greenFlag.jpg")]
+		public static const greenFlag:Class;
+		
 		[Embed(source="/assets/Noentry.png")]
 		public static const noentryIcon:Class;
 
@@ -72,13 +75,22 @@ package com.metrobg.Icons {
 
 		[Embed(source="/assets/Preview.png")]
 		public static const previewIcon:Class;
-
+ 
 		[Embed(source="/assets/Print.png")]
 		public static const printIcon:Class;
 
+	    [Embed(source="/assets/redFlag.jpg")]
+		public static const redFlag:Class;
+		
 		[Embed(source="/assets/Refresh.png")]
 		public static const refreshIcon:Class;
 
+        [Embed(source="/assets/refund.png")] 
+		public static const refundIcon:Class;
+		
+		 [Embed(source="/assets/refundII.png")]
+		public static const refundIIIcon:Class;
+		
 		[Embed(source="/assets/Remove.png")]
 		public static const removeIcon:Class;
 
