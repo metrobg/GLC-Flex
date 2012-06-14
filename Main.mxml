@@ -4,6 +4,22 @@
                 xmlns:local="*" width="100%" height="100%"
                 creationComplete="init();">
     <mx:Script source="Main.as" />
+ <!--   <mx:states>
+    	<mx:State  id="state1" name="base">
+    		   <mx:SetProperty  target="{ClientWindow}" name="visible" value="false" />
+    		   <mx:SetProperty  target="{appMenu}" name="visible" value="false" />
+    		   <mx:SetProperty  target="{appControlBar}" name="visible" value="false" />
+    		   <mx:SetProperty  target="{dgHistory}" name="visible" value="false" />
+    		   
+    	</mx:State>
+    	<mx:State  id="state2" name="run">
+    		   <mx:SetProperty  target="{ClientWindow}" name="visible" value="true" />
+    		   <mx:SetProperty  target="{appMenu}" name="visible" value="true" />
+    		   <mx:SetProperty  target="{appControlBar}" name="visible" value="true" />
+    		    <mx:SetProperty  target="{dgHistory}" name="visible" value="true" />
+    		  
+    	</mx:State>
+    </mx:states>  -->
     <mx:RemoteObject id="service" destination="ColdFusion" source="flex.queries.GLC"
                      result="onServiceDataReady(event)" showBusyCursor="true" fault="onServiceFault(event)">
         <mx:method name="deleteClient" />
@@ -22,6 +38,10 @@
         <mx:method name="decodeCard" />
         <mx:method name="getReports" />
         <mx:method name="getAgencies" />
+        <mx:method name="getFlaggedClients" />
+        <mx:method name="addFlag" />
+        <mx:method name="removeFlag" />
+        <mx:method name="doRefund" />
         
     </mx:RemoteObject>
     <mx:RemoteObject id="gateway" destination="ColdFusion" source="com.goodlife.GLCGateway"
@@ -80,7 +100,7 @@
             <mx:Spacer height="1" />
         </mx:VBox>
         <!-- I M A G E    A C T I O N S -->
-        <mx:VBox width="120" height="100%">
+        <mx:VBox width="220" height="100%" id="vbox1">
             <mx:Grid>
                 <mx:GridRow width="100%" height="100%">
                     <mx:GridItem width="100%" height="100%">
@@ -99,7 +119,7 @@
                         <mx:Image id="rr" source="{Images.reportIcon}" toolTip="Click to open Report Runner"
                                   buttonMode="true" useHandCursor="true" click="addReportWindow()" />
                     </mx:GridItem>
-                </mx:GridRow>
+                </mx:GridRow> 
                 <mx:GridRow width="100%" height="100%">
                     <mx:GridItem width="100%" height="100%">
                         <mx:Image id="cal" source="{Images.calendarIcon}" toolTip="Click to Show / Hide Calendar"
@@ -117,10 +137,12 @@
                         <mx:Image id="cc" source="{Images.cardIcon}" toolTip="Click to Process Credit Card"
                                   buttonMode="true" click="collectPayment()" useHandCursor="true" />
                     </mx:GridItem>
+                   
+                   
                 </mx:GridRow>
             </mx:Grid>
         </mx:VBox>
-        <mx:Spacer width="73" height="8" />
+        <!-- <mx:Spacer width="73" height="8"  id="spacer1"/> -->
         <!--  C L I E N T   S T A T U S   C A N V A S  -->
         <mx:Canvas width="371" height="56" id="canvas4">
             <mx:Label text="Client ID:" width="85" fontSize="10"
@@ -195,7 +217,7 @@
     <zet:MDI id="mdi" width="100%" height="100%">
         <zet:MDIWindow id="ClientWindow" x="29" y="44"
                        width="650" height="500" windowState="normal"
-                       visible="false" maxWidth="650" maxHeight="500">
+                       visible="true" maxWidth="650" maxHeight="500">
             <mx:TabNavigator width="100%" height="450" creationPolicy="all" id="tn">
                 <mx:Canvas label="Summary" width="100%" height="100%"
                            horizontalScrollPolicy="off" id="cnv_summary">
@@ -249,9 +271,10 @@
                     <mx:Text x="406" y="156" width="190" id="clientCreditReport" />
                     <mx:Label x="310" y="156" text="Credit Report:"
                               fontWeight="bold" width="94" textAlign="right" />
-                    <mx:DataGrid x="63" y="251" width="505"
-                                 id="dgHistory" includeInLayout="false">
+                    <mx:DataGrid x="63" width="505"
+                                 id="dgHistory" includeInLayout="false" doubleClickEnabled="true" dragEnabled="true" y="251">
                         <mx:columns>
+                            <mx:DataGridColumn headerText="ID" dataField="ID" visible="false" />
                             <mx:DataGridColumn headerText="Type" dataField="TRANS_TYPE" textAlign="center" width="45" />
                             <mx:DataGridColumn headerText="Date" dataField="PDATE" textAlign="center" width="110" />
                             <mx:DataGridColumn headerText="Message" dataField="MESSAGE" textAlign="center" />
@@ -286,7 +309,15 @@
                               fontSize="12" />
                     <mx:Button x="89" y="221" label="Print History"
                                id="btnPrintHistory" click="printHistory()" />
-                </mx:Canvas>
+                               <mx:Image y="184" source="{Images.redFlag}" click="flagClient(event)" useHandCursor="true"  right="10"
+                               	 toolTip="Click to remove flag from this client" id="redFlag" buttonMode="true" visible="false"/>
+                                <mx:Image y="184" source="{Images.greenFlag}" click="flagClient(event)" useHandCursor="true"  right="10"
+                               	 toolTip="Click to flag this client" id="greenFlag" buttonMode="true" visible="true"/>
+                               	  
+                               	                  	     <mx:Image source="{Images.refundIcon}" click="issueRefund();"
+                               	                  	   	 toolTip="Click to issue a Refund for the selected transaction" 
+                               	                  	   	 buttonMode="true" useHandCursor="true" y="251" right="10"/>
+               </mx:Canvas>
                 <mx:Canvas label="Demographic" width="100%" height="100%" id="cnv_demographic">
                     <mx:Label x="106" y="10" text="First Name"
                               width="160" textAlign="center" fontWeight="bold" />
@@ -466,6 +497,31 @@
                               fontWeight="bold" horizontalCenter="0" />
                     <mx:Button x="262" y="339" label="Add Note"
                                click="openNotesWindow(-9)" id="btnAddNote" icon="@Embed(source='assets/Add.png')" />
+                </mx:Canvas>
+                <mx:Canvas label="Flaged Clients" width="100%" height="100%" show="service.getFlaggedClients(txtUSERID)"
+                            id="cnv_flags">
+                    <mx:DataGrid y="51" width="529" height="232"
+                                 horizontalCenter="0" id="dgFlags" wordWrap="true"
+                                 variableRowHeight="true" doubleClick="openFlagCommentsForEdit()" doubleClickEnabled="true"
+                                  toolTip="Double click to edit the comments for the selected client">
+                        <mx:columns>
+                            <mx:DataGridColumn headerText="Client" dataField="CLIENTID" width="55" />
+                            <mx:DataGridColumn headerText="Name" dataField="NAME" />
+                            <mx:DataGridColumn headerText="Date" dataField="PDATE" width="75" />
+                            <mx:DataGridColumn headerText="Time" dataField="PTIME" width="45" />
+                            <mx:DataGridColumn headerText="Comments" dataField="TEXT" wordWrap="true" />
+                            <mx:DataGridColumn headerText="User" dataField="USERID" width="75" />
+                        </mx:columns>
+                    </mx:DataGrid>
+                    <mx:Label y="25" text="My Flagged Client List" width="529"
+                              textAlign="center" fontSize="12" fontStyle="normal"
+                              fontWeight="bold" horizontalCenter="0"  id="label5"/>
+                    <mx:HBox y="291" width="529" horizontalCenter="0" horizontalAlign="center">
+                        <mx:Button label="Print List" click="printFlagList();"/>
+                        <mx:Button label="Load Client" click="loadClientReocrd()"/>
+                        <mx:Button label="Remove Flag" click="removeFromList();"/>
+                    </mx:HBox>
+                    
                 </mx:Canvas>
             </mx:TabNavigator>
         </zet:MDIWindow>
