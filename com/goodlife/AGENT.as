@@ -11,6 +11,7 @@ package com.goodlife
 		public var LNAME:String = "";
 		public var INITIALS:String = "";
 		public var ACTIVE:String = "";
+		public var COMPANY:String = "";
 
 
 		public function AGENT()
