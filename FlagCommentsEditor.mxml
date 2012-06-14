@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<MDIWindow xmlns="org.openzet.containers.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
+    xmlns:zet="http://www.openzet.org/2009/mxml"
+    xmlns:ns2="com.ace.Input.*"
+    xmlns:local="*"	
+	creationComplete="init()" 
+	width="307" height="174" title="Flag Comments - 100  characters max." > 
+	<mx:Script>
+		<![CDATA[
+			
+			public var key:Number = 0;
+			public var textChanged:Boolean = false;
+			
+			private function done(evt:MouseEvent):void {
+			this.close();
+			}
+			
+			private function textUpdated():void {
+				textChanged = true;
+			}
+		]]>
+	</mx:Script>
+
+	<mx:VBox height="100%" width="100%">
+	<mx:Canvas width="100%" height="100%">
+	
+	<ns2:ValidatedTextArea height="73" left="10" right="10" top="20" id="taNotes" maxDataChars="100" change="textUpdated();" wordWrap="true"/>
+		<mx:HBox x="0" width="100%" height="33" horizontalAlign="center" verticalAlign="middle" y="101">
+			<mx:Button label="Save" click="done(event)" id="btnSaveNote"/>
+		</mx:HBox>		 	
+	</mx:Canvas>
+	</mx:VBox>
+			
+</MDIWindow>
