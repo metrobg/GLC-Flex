@@ -27,8 +27,14 @@ private var dbTools:DBTools;
 
 private function init():void {
 	dbTools = new DBTools();
-	ACTIVE.labelField = "LABEL"
-	ACTIVE.dataProvider = new ArrayCollection([{DATA: "", LABEL: "Select"}, {DATA: "Y", LABEL: "Active"}, {DATA: "N", LABEL: "Inactive"}]);
+	ACTIVE.labelField = "LABEL";
+	COMPANY.labelField = "LABEL";
+	 
+	
+	COMPANY.dataProvider = parentApplication.acAgencies;
+	ACTIVE.dataProvider = new ArrayCollection([{DATA: "", LABEL: "Select"}, 
+											   {DATA: "Y", LABEL: "Active"}, 
+											   {DATA: "N", LABEL: "Inactive"}]);
 }
 
 
@@ -94,7 +100,7 @@ private function buttonHandler(event:MouseEvent):void {
 			if (Utilities.validateAll(form1)) {
 				agent.FNAME = FNAME.text;
 				agent.LNAME = LNAME.text;
-				agent.INITIALS = INITIALS.text;
+				agent.COMPANY = COMPANY.selectedItem.DATA;
 				agent.ACTIVE = ACTIVE.selectedItem.DATA;
 				gateway.saveAgent(agent);
 			} else {

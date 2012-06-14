@@ -27,9 +27,9 @@
 	   visible="true" height="287" top="10" left="10">
 		<mx:columns>
 			<mx:DataGridColumn headerText="ID" dataField="AGENTID" visible="false" width="55"/>
-			<mx:DataGridColumn headerText="Name" dataField="FNAME" width="150"/>
-			<mx:DataGridColumn headerText="Name" dataField="LNAME" width="150"/>
-			<mx:DataGridColumn headerText="Initials" dataField="INITIALS" width="50"/> 
+			<mx:DataGridColumn headerText="Name" dataField="FNAME" width="100"/>
+			<mx:DataGridColumn headerText="Name" dataField="LNAME" width="100"/>
+			<mx:DataGridColumn headerText="Company" dataField="COMPANY" width="90"/> 
 			<mx:DataGridColumn headerText="Active" dataField="ACTIVE" width="55" textAlign="center"/>
 		</mx:columns>
 	</mx:DataGrid>
@@ -42,8 +42,9 @@
 			<mx:FormItem label="Last Name">
 				<ns2:ValidatedTextInput id="LNAME" text="{agent.LNAME}" maxDataChars="25"/>
 			</mx:FormItem>
-			<mx:FormItem label="Initials" required="false">
-				<ns2:ValidatedTextInput maxDataChars="5" id="INITIALS" text="{agent.INITIALS}" upper="true"/>
+			<mx:FormItem label="Agency" required="false">
+			    <ns2:ValidatedComboBox id="COMPANY" dataField="DATA" value="{agent.COMPANY}" badIndexes="0"/>
+				<!--<ns2:ValidatedTextInput maxDataChars="5" id="INITIALS" text="{agent.INITIALS}" upper="true"/>-->
 			</mx:FormItem> 		 
 			<mx:FormItem label="Status" required="false" id="formitem1">
 				<ns2:ValidatedComboBox id="ACTIVE" dataField="DATA" value="{agent.ACTIVE}" badIndexes="0"/>
