@@ -153,6 +153,10 @@
    			necessary DAO cfc's. Also modified the sales rep module so that the company identifier can be aasociated with
    			the rep. This will aid in the select list on the website.
    1.7.6	6/6/12 Added password window that will display the decrypted credit card info upon successful entry of the code
+   
+   1.7.8    6/10/12  Added the flags tab, and the ability to flag clients.
+   1.8.0    6/13/12  Added ability to issue a refund to a client. Process will 0 the payment amount, set the message to
+   			"Refund client" and set the status code to RFND.
  */
 import com.ace.DBTools;
 import com.ace.Input.Utilities;
@@ -163,6 +167,7 @@ import com.metrobg.Classes.ReportItem;
 import com.metrobg.Classes.SecurityController;
 import com.metrobg.Icons.Images;
 
+import flash.events.MouseEvent;
 import flash.net.navigateToURL;
 
 import mx.collections.ArrayCollection;
@@ -232,7 +237,7 @@ private var bolRROpen:Boolean = false;
 private var aryWindows:Array;
 
 [Bindable]
-private var client:CLIENT;
+public var client:CLIENT;
 
 [Bindable]
 private var billing:BILLING;
@@ -267,8 +272,9 @@ public var password:String = 'blowfish';
 private var passwordWindow:PasswordWindow;
 [Bindable]
 private var cleartextcard:String = '';
-
-public var version:String = "1.7.8.3";
+private var acFlaggedClients:ArrayCollection;
+public var flagPosition:Number = -1;
+public var version:String = "1.8.0.1";
 
 public function init():void
 {
@@ -397,6 +403,7 @@ private function loginComplete(event:LoginCompleteEvent):void
     lblUSERID.text = txtUSERID;
     lblROLE.text = sc.getRole(Number(txtROLE));
     service.getReports(txtROLE);
+    service.getFlaggedClients(txtUSERID);                              // load flagged clients
 }
 
 private function addAdjustmentWindow():void
@@ -587,8 +594,60 @@ private function NotesWindowClosing(evt:MDIWindowEvent):void
         }
         dgNotes.doubleClickEnabled = !bolNotesOpen;
     }
-}
+} 
 
+private function openFlagComments(value:Number):void
+{
+	var flagEditor:FlagCommentsEditor = new FlagCommentsEditor();
+    
+    
+   // dgNotes.doubleClickEnabled = !bolNotesOpen;
+    mdi.addChild(flagEditor);
+    flagEditor.setSize(337, 194);
+    flagEditor.showCloseButton = true;
+    flagEditor.showMaxButton = false;
+    flagEditor.showMinButton = false;
+    flagEditor.resizable = false;
+    flagEditor.x = 310;
+     
+    flagEditor.addEventListener(MDIWindowEvent.CLOSE, flagWindowClosing);
+     
+    //aryWindows.push(flagEditor);
+}
+private function flagWindowClosing(evt:MDIWindowEvent):void
+{
+    if (evt.type == "close")
+    {
+        service.addFlag(evt.currentTarget.taNotes.text, txtUSERID, client.CLIENTID, 0);
+       
+    }
+}
+  
+private function openFlagCommentsForEdit():void
+{
+   
+        var flagEditor:FlagCommentsEditor = new FlagCommentsEditor();
+        mdi.addChild(flagEditor);
+        flagEditor.setSize(337, 194);
+        flagEditor.showCloseButton = true;
+        flagEditor.showMaxButton = false;
+        flagEditor.showMinButton = false;
+        flagEditor.resizable = false;
+        flagEditor.x = 310;
+        flagEditor.addEventListener(MDIWindowEvent.CLOSE, flagEditWindowClosing);
+        
+         flagEditor.key = dgFlags.selectedItem.ID;
+        flagEditor.taNotes.text = dgFlags.selectedItem.TEXT
+     
+}
+private function flagEditWindowClosing(evt:MDIWindowEvent):void
+{
+    if ((evt.type == "close") && (evt.currentTarget.textChanged))
+    {
+        service.addFlag(evt.currentTarget.taNotes.text, txtUSERID, client.CLIENTID, evt.currentTarget.key);
+               
+    } 
+}
 private function addAgentWindow():void
 {
     agentEditor = new AgentEditor();
@@ -851,6 +910,7 @@ public function onServiceDataReady(event:ResultEvent):void
                 tn.selectedIndex = 0;
                 dgHistory.visible = true;
                 dgReview.visible = false;
+                
                 break;
             }
             else
@@ -1048,6 +1108,45 @@ public function onServiceDataReady(event:ResultEvent):void
                 Alert.show("Problem Decoding Credit Card", "Error");
             }
             break;
+        case "getFlaggedClients":
+
+            if(act.result is ArrayCollection)
+            {          
+                acFlaggedClients = ArrayCollection(act.result);
+                dgFlags.dataProvider = acFlaggedClients;
+                try {
+                    setFlaggedPosition(client.CLIENTID);
+                	
+                } catch (err:Error) {}
+                
+                 
+            }
+            else
+            {
+                Alert.show("Problem Loading flagged clients", "Error");
+            }
+            break;
+         case "addFlag":
+         case "removeFlag":
+            if(act.result.status == "1")
+            {          
+               service.getFlaggedClients(txtUSERID);               
+            }
+            else
+            {
+                Alert.show("Problem updating flag", "Error");
+            }
+            break;
+         case "doRefund":
+            if(act.result.status == "1")
+            {          
+               gateway.getClientById(client.CLIENTID);              
+            }
+            else
+            {
+                Alert.show("Problem updating flag", "Error");
+            }
+            break;
         case "getClientByName":
         case "getClientBySSN":
         case "getClientByCC":
@@ -1059,13 +1158,13 @@ public function onServiceDataReady(event:ResultEvent):void
                 acGeneral = new ArrayCollection(act.result);
                 dgReview.dataProvider = acGeneral;
                 labGrid.text = "Search Results";
-            }
+            }  
             if (act.result.length == 1)
             {
                 tn.selectedIndex = 0;
                 makeClientRecord(act.result[0]);
                 dgHistory.visible = true;
-                dgReview.visible = false;
+                dgReview.visible = false;                                             
             }
             if (act.result.length == 0)
             {
@@ -1124,6 +1223,7 @@ private function makeClientRecord(vclient:CLIENT):void
     	default:
     	       lblSTATUS.text = "Unknown";
     }
+    setFlaggedPosition(client.CLIENTID);
 }
 
 private function makeBillingRecord(vbilling:BILLING):void
@@ -1555,30 +1655,106 @@ public function closePasswordWindow(event:CloseEvent):void
         Alert.show("Password did not match", "Failed");
     }
 }
+ 
+private function flagClient(event:MouseEvent):void
+{
+    if( (client.CLIENTID == 0))
+    {
+        return;
+    }
 
+    if(flagPosition >= 0)
+    {
+        service.removeFlag(txtUSERID, client.CLIENTID);
+    }
+    else
+    {
+        //service.addFlag("Flag Set", txtUSERID, client.CLIENTID, 0);
+        openFlagComments(client.CLIENTID);
+    }
+}
 
+private function toggleFlag():void
+{
+    if(flagPosition >= 0)              // the client is in the list of flagged clients
+    {
+        redFlag.visible = true;
+        greenFlag.visible = false;
+    }
+    else                                 // no flag set on this client, show the green flag
+    {
+        redFlag.visible = false;
+        greenFlag.visible = true;
+    }
+}
+private function setFlaggedPosition(vClientid:Number):void
+{
+	flagPosition = -1
+    if(acFlaggedClients.length == 0)
+    {
+        flagPosition = -1;
+        toggleFlag();
+        return;
+    } 
 
+    for(var i:int = 0; i < acFlaggedClients.length; i++)
+    {
+        if(acFlaggedClients[i].CLIENTID == vClientid)
+        {
+            flagPosition = i;                       // set the appropriate flag
+            break;
+        } 
+    }
+    toggleFlag(); 
+}
+private function printFlagList():void {
+	Alert.show("This function is not implemented yet","Sorry",Alert.OK,null,null,Images.badIcon)
+}
+private function loadClientReocrd():void {
+	 if(dgFlags.selectedIndex >= 0)
+    {
+	gateway.getClientById(dgFlags.selectedItem.CLIENTID);
+    }
+}
+private function removeFromList():void
+{
+    if(dgFlags.selectedIndex >= 0)
+    {
+        service.removeFlag(txtUSERID, dgFlags.selectedItem.CLIENTID);
+    }
+}
 
-/*
+private function issueRefund():void
+{
+         if((txtUSERID != 'danielle') && (txtUSERID != 'ggraves')) {
+         	return;
+         	
+         }
+    if(dgHistory.selectedIndex >= 0)
+    {
+        var when:String = dgHistory.selectedItem.PDATE;
+        var amt:Number = dgHistory.selectedItem.AMOUNT;
+        var typ:String = dgHistory.selectedItem.TRANS_TYPE;
+        if((typ == "P") || (typ == "A") && (amt < 0) )
+        {
+            Alert.show("Issue Refund\nAmount: " + nf.format(amt) + "\n Date: " + when, "Refund Request", Alert.OK | Alert.CANCEL, null, doRefund, Images.warningIcon);
+        }
+        else
+        {
+            Alert.show("Unable to refund this transaction, wrong type", "Refund Error", Alert.OK, null, null, Images.stopIcon);
+        }
+    }
+} 
 
-   public var employeeRO:RemoteObject;
-
-   public function useRemoteObject(intArg:int, strArg:String):void {
-   employeeRO = new RemoteObject();
-   employeeRO.destination = "SalaryManager";
-   employeeRO.getList.addEventListener("result", getListResultHandler);
-   employeeRO.addEventListener("fault", faultHandler);
-   employeeRO.getList(deptComboBox.selectedItem.data);
-   }
-
-   public function getListResultHandler(event:ResultEvent):void {
-   // Do something
-   empList=event.result;
-   }
-
-   public function faultHandler (event:FaultEvent):void {
-   // Deal with event.fault.faultString, etc.
-   Alert.show(event.fault.faultString, 'Error');
-   }
-
- */
+private function doRefund(event:CloseEvent):void
+{
+    if(event.detail == Alert.OK)
+    {
+        Alert.show("Refund issued", "Refund Issued");
+        service.doRefund(dgHistory.selectedItem.ID);
+    }
+    else
+    {
+        Alert.show("Refund Cancelled", "Cancel");
+    }
+}
