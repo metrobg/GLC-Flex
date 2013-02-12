@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:TitleWindow xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute" 
+	 creationComplete="prgInit()" width="372" height="288">
+ <mx:Script>
+ 	<![CDATA[
+ 		import mx.collections.ArrayCollection;
+import mx.formatters.DateFormatter;
+
+public var defaultReportDates:String;
+
+private var df:DateFormatter;
+
+
+
+private var today:Date = new Date();
+
+[Bindable]
+public var acGeneral:ArrayCollection = new ArrayCollection;
+public var acAgents:ArrayCollection = new ArrayCollection;
+public var PDFBase:String;
+
+private function prgInit():void
+{
+    var month:Number = today.getMonth() + 1;
+    df = new DateFormatter();
+    df.formatString = "DD-MMM-YYYY";
+    defaultReportDates = fromDate_df.text;
+   // acGeneral.addItemAt({LABEL: "ALL", DATA: "%"} ,0); 
+   // cbx_Referrer.dataProvider = acGeneral;
+}
+            private function runReport():void
+            {
+            	/* if((fromDate_df.text ='') || (toDate_df.text = '')) {
+            		mx.controls.Alert.show("Blank dates are not allowed","Missing dates");
+            		return;
+            	} */
+                var fdate:Date = new Date(fromDate_df.text);
+                var tdate:Date = new Date(toDate_df.text);
+                var variables:URLVariables = new URLVariables();
+                 
+                var state:String = '';
+                variables.from = df.format(fdate).toUpperCase();
+                variables.to = df.format(tdate).toUpperCase();
+                variables.agentid = cbx_Referrer.selectedItem.DATA;
+                var request:URLRequest = new URLRequest(PDFBase);
+                request.method = "POST";
+                request.data = variables;
+                navigateToURL(request);
+            }  
+ 	]]>
+ </mx:Script>
+	<mx:DateField y="51" left="165" width="112" id="fromDate_df"/>
+	<mx:DateField y="81" left="165" width="112" id="toDate_df"/>
+	<mx:Label y="53" text="Start Date" fontWeight="bold" left="90" textAlign="right" width="71"/>
+	<mx:Label y="82" text="End Date" fontWeight="bold" left="90" textAlign="right" width="71"/>
+	<mx:ComboBox y="143" left="85" id="cbx_Referrer" labelField="LABEL"  width="200" dataProvider="{acGeneral}"/> 
+	<mx:Label y="125" text="Agent" width="200" fontWeight="bold" textAlign="center" left="85" id="lbl_Type"/>
+	<mx:Label x="10" y="10" text="Recurring Payment Report" width="342" textAlign="center" fontWeight="bold" fontSize="12"/>
+	<mx:Button y="180" label="Run" horizontalCenter="0" id="btn_run" click="runReport()"/>
+	
+</mx:TitleWindow>

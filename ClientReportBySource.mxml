@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:TitleWindow xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute" 
+	 creationComplete="prgInit()" width="372" height="250">
+ <mx:Script>
+ 	<![CDATA[
+ 		import mx.collections.ArrayCollection;
+import mx.formatters.DateFormatter;
+
+public var defaultReportDates:String;
+
+private var df:DateFormatter;
+
+
+
+private var today:Date = new Date();
+
+[Bindable]
+public var acGeneral:ArrayCollection = new ArrayCollection;
+public var PDFBase:String;
+
+private function prgInit():void
+{
+    var month:Number = today.getMonth() + 1;
+    df = new DateFormatter();
+    df.formatString = "DD-MMM-YYYY";
+    defaultReportDates = fromDate_df.text;
+    acGeneral = parentApplication.acReferral;
+    acGeneral.addItemAt({LABEL: "ALL", DATA: "%"} ,0);
+    cbx_Referrer.dataProvider = parentApplication.acReferral;
+}
+            private function runReport():void
+            {
+                var fdate:Date = new Date(fromDate_df.text);
+                var tdate:Date = new Date(toDate_df.text);
+                var variables:URLVariables = new URLVariables();
+                 
+                var state:String = '';
+                variables.from = df.format(fdate).toUpperCase();
+                variables.to = df.format(tdate).toUpperCase();
+                variables.source = cbx_Referrer.selectedItem.DATA;
+                //var PDFBase:String = "http://www.goodlifecredit.com/flex/reports/GLCSourcePaymentReport.cfm";
+                var request:URLRequest = new URLRequest(PDFBase);
+                request.method = "POST";
+                request.data = variables;
+                navigateToURL(request);
+            } 
+ 	]]>
+ </mx:Script>
+	<mx:DateField y="51" left="165" width="112" id="fromDate_df"/>
+	<mx:DateField y="81" left="165" width="112" id="toDate_df"/>
+	<mx:Label y="53" text="Start Date" fontWeight="bold" left="90" textAlign="right" width="71"/>
+	<mx:Label y="82" text="End Date" fontWeight="bold" left="90" textAlign="right" width="71"/>
+	<mx:ComboBox y="135" left="85" id="cbx_Referrer" labelField="LABEL"  width="200"/> 
+	<mx:Label y="117" text="Referrer" width="200" fontWeight="bold" textAlign="center" left="85"/>
+	<mx:Label x="10" y="10" text="Client Report By Source" width="288" textAlign="center" fontWeight="bold" fontSize="12"/>
+	<mx:Button y="174" label="Run" horizontalCenter="0" id="btn_run" click="runReport()"/>
+</mx:TitleWindow>
